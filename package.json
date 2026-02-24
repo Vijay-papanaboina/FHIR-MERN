@@ -1,0 +1,20 @@
+{
+    "name": "fhir-mern",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "workspaces": [
+        "frontend",
+        "backend",
+        "shared"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Vijay-papanaboina/FHIR-MERN.git"
+    },
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^25.3.0",
+        "typescript": "^5.9.3"
+    }
+}
