@@ -120,7 +120,7 @@ const verificationSchema = new Schema<IVerification>(
 );
 
 // Indexes
-verificationSchema.index({ identifier: 1 });
+verificationSchema.index({ identifier: 1, value: 1 });
 verificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export const Verification = model<IVerification>('verification', verificationSchema);

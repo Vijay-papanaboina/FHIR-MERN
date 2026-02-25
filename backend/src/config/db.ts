@@ -17,5 +17,5 @@ export const getMongoDb = () => {
     if (mongoose.connection.readyState !== 1) {
         throw new Error('MongoDB is not connected. Call connectMongo() first.');
     }
-    return mongoose.connection.getClient().db();
+    return mongoose.connection.db!;
 };

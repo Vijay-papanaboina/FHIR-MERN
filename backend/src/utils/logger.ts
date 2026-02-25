@@ -17,12 +17,12 @@ const myFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
 const isTTY = process.stdout.isTTY ?? false;
 
 export const logger = winston.createLogger({
-    level: 'info',
+    level: process.env['LOG_LEVEL']?.toLowerCase() || 'info',
     silent: process.env['NODE_ENV'] === 'test',
     format: combine(
         errors({ stack: true }),
         ...(isTTY ? [colorize()] : []),
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        timestamp({ format: () => new Date().toISOString() }),
         myFormat
     ),
     transports: [

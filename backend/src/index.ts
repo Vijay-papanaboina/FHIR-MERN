@@ -11,8 +11,9 @@ import { jsend } from './utils/jsend.js';
 import { AppError } from './utils/AppError.js';
 import { correlationId } from './middleware/correlationId.js';
 import { requestLogger } from './middleware/requestLogger.js';
-import { globalLimiter } from './middleware/rateLimiter.js';
+import { globalLimiter, authLimiter } from './middleware/rateLimiter.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import patientRoutes from './routes/patient.routes.js';
 
 const app = express();
 const port = env.PORT;
@@ -32,6 +33,7 @@ app.use(requestLogger);
 
 // ── Better-Auth (before express.json — it parses its own body) ──
 let authHandler: ReturnType<typeof toNodeHandler>;
+app.use('/api/auth', authLimiter);
 app.all('/api/auth/{*any}', (req, res) => {
   if (!authHandler) authHandler = toNodeHandler(auth);
   return authHandler(req, res);
@@ -45,6 +47,8 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.json(jsend.success({ message: 'Hello from FHIR Backend!' }));
 });
+
+app.use('/api/patients', patientRoutes);
 
 // ── 404 catch-all ───────────────────────────────────────────────
 app.all('/{*any}', (req, res, next) => {

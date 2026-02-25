@@ -24,6 +24,8 @@ export interface ErrorResponse {
     message: string;
 }
 
+export type JSendResponse<T> = SuccessResponse<T> | FailResponse<T> | ErrorResponse;
+
 export const jsend = {
     /**
      * The request was processed correctly.

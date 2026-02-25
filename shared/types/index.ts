@@ -1,2 +1,2 @@
 // Export all shared types from here
-export { };
+export type { PatientDTO, AdministrativeGender } from './patient.dto.js';
