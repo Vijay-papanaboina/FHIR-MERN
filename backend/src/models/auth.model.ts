@@ -18,7 +18,7 @@ const userSchema = new Schema<IUser>(
     {
         _id: { type: String },
         name: { type: String, required: true },
-        email: { type: String, required: true, unique: true },
+        email: { type: String, required: true, unique: true, lowercase: true, trim: true },
         emailVerified: { type: Boolean, default: false },
         image: { type: String },
         role: { type: String, enum: ['patient', 'practitioner', 'admin'], default: 'patient' },
@@ -53,6 +53,10 @@ const sessionSchema = new Schema<ISession>(
     { timestamps: true, _id: false }
 );
 
+// Indexes
+sessionSchema.index({ userId: 1 });
+sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
 export const Session = model<ISession>('session', sessionSchema);
 
 // ── Account ─────────────────────────────────────────────────────
@@ -78,16 +82,20 @@ const accountSchema = new Schema<IAccount>(
         userId: { type: String, required: true },
         accountId: { type: String, required: true },
         providerId: { type: String, required: true },
-        accessToken: { type: String },
-        refreshToken: { type: String },
+        accessToken: { type: String, select: false },
+        refreshToken: { type: String, select: false },
         accessTokenExpiresAt: { type: Date },
         refreshTokenExpiresAt: { type: Date },
         scope: { type: String },
-        idToken: { type: String },
-        password: { type: String },
+        idToken: { type: String, select: false },
+        password: { type: String, select: false },
     },
     { timestamps: true, _id: false }
 );
+
+// Indexes
+accountSchema.index({ userId: 1 });
+accountSchema.index({ accountId: 1, providerId: 1 }, { unique: true });
 
 export const Account = model<IAccount>('account', accountSchema);
 
@@ -111,5 +119,8 @@ const verificationSchema = new Schema<IVerification>(
     { timestamps: true, _id: false }
 );
 
-export const Verification = model<IVerification>('verification', verificationSchema);
+// Indexes
+verificationSchema.index({ identifier: 1 });
+verificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
+export const Verification = model<IVerification>('verification', verificationSchema);

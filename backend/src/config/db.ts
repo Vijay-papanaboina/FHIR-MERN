@@ -7,13 +7,15 @@ export const connectMongo = async () => {
         await mongoose.connect(env.MONGO_URI);
         logger.info('MongoDB connected');
     } catch (error) {
-        logger.error('Failed to connect to MongoDB');
-        console.error(error);
+        logger.error('Failed to connect to MongoDB', error);
         process.exit(1);
     }
 };
 
 // Export the raw MongoDB Db instance for Better-Auth's mongodbAdapter
 export const getMongoDb = () => {
+    if (mongoose.connection.readyState !== 1) {
+        throw new Error('MongoDB is not connected. Call connectMongo() first.');
+    }
     return mongoose.connection.getClient().db();
 };

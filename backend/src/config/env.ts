@@ -1,12 +1,11 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
-import path from 'path';
 
 // Load variables from .env file into process.env before validation
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config();
 
 const envSchema = z.object({
-    PORT: z.string().default('3000').transform((val) => parseInt(val, 10)),
+    PORT: z.string().default('3000').transform((val) => parseInt(val, 10)).pipe(z.number().int().min(1).max(65535)),
 
     MONGO_URI: z.url('MONGO_URI must be a valid URL'),
     FHIR_BASE_URL: z.url('FHIR_BASE_URL must be a valid URL'),
@@ -15,7 +14,7 @@ const envSchema = z.object({
 
     FRONTEND_URL: z.url('FRONTEND_URL must be a valid URL'),
 
-    BETTER_AUTH_SECRET: z.string().min(10, 'BETTER_AUTH_SECRET must be at least 10 characters long'),
+    BETTER_AUTH_SECRET: z.string().min(32, 'BETTER_AUTH_SECRET must be at least 32 characters long'),
     BETTER_AUTH_URL: z.url('BETTER_AUTH_URL must be a valid URL'),
 
     GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),

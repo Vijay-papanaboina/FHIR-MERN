@@ -14,7 +14,7 @@ export const errorHandler = (
     err: Error,
     req: Request,
     res: Response,
-    _next: NextFunction,
+    next: NextFunction,
 ): void => {
     // ── Log the full error ──────────────────────────────────────
     logger.error(`${err.message}`, {
@@ -23,6 +23,12 @@ export const errorHandler = (
         method: req.method,
         path: req.originalUrl,
     });
+
+    // ── Guard: don't send if response already started ───────────
+    if (res.headersSent) {
+        next(err);
+        return;
+    }
 
     // ── Operational (expected) errors ───────────────────────────
     if (err instanceof AppError) {

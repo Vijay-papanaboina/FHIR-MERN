@@ -38,6 +38,7 @@ export const initAuth = () => {
                     type: 'string',
                     required: false,
                     defaultValue: null,
+                    input: false,
                 },
             },
         },

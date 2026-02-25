@@ -31,13 +31,15 @@ app.use(correlationId);
 app.use(requestLogger);
 
 // ── Better-Auth (before express.json — it parses its own body) ──
+let authHandler: ReturnType<typeof toNodeHandler>;
 app.all('/api/auth/{*any}', (req, res) => {
-  return toNodeHandler(auth)(req, res);
+  if (!authHandler) authHandler = toNodeHandler(auth);
+  return authHandler(req, res);
 });
 
-// ── Body parser & rate limiter ──────────────────────────────────
-app.use(express.json());
+// ── Rate limiter & body parser ──────────────────────────────────
 app.use(globalLimiter);
+app.use(express.json());
 
 // ── Routes ──────────────────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -63,4 +65,7 @@ const startServer = async () => {
   });
 };
 
-startServer();
+startServer().catch((err) => {
+  logger.error('Failed to start server', err);
+  process.exit(1);
+});

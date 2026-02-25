@@ -9,17 +9,17 @@
  *   res.status(500).json(jsend.error('Internal Server Error'));
  */
 
-interface SuccessResponse<T> {
+export interface SuccessResponse<T> {
     status: 'success';
     data: T;
 }
 
-interface FailResponse<T> {
+export interface FailResponse<T> {
     status: 'fail';
     data: T;
 }
 
-interface ErrorResponse {
+export interface ErrorResponse {
     status: 'error';
     message: string;
 }
