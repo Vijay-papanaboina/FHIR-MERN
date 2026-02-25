@@ -13,6 +13,8 @@ const envSchema = z.object({
     FHIR_USERNAME: z.string().min(1, 'FHIR_USERNAME is required'),
     FHIR_PASSWORD: z.string().min(1, 'FHIR_PASSWORD is required'),
 
+    FRONTEND_URL: z.url('FRONTEND_URL must be a valid URL'),
+
     BETTER_AUTH_SECRET: z.string().min(10, 'BETTER_AUTH_SECRET must be at least 10 characters long'),
     BETTER_AUTH_URL: z.url('BETTER_AUTH_URL must be a valid URL'),
 
