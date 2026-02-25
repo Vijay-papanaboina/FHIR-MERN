@@ -12,3 +12,8 @@ export const connectMongo = async () => {
         process.exit(1);
     }
 };
+
+// Export the raw MongoDB Db instance for Better-Auth's mongodbAdapter
+export const getMongoDb = () => {
+    return mongoose.connection.getClient().db();
+};
