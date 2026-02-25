@@ -14,6 +14,7 @@ import { requestLogger } from './middleware/requestLogger.js';
 import { globalLimiter, authLimiter } from './middleware/rateLimiter.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import patientRoutes from './routes/patient.routes.js';
+import vitalsRoutes from './routes/vitals.routes.js';
 
 const app = express();
 const port = env.PORT;
@@ -49,6 +50,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/patients', patientRoutes);
+app.use('/api/patients/:id/vitals', vitalsRoutes);
 
 // ── 404 catch-all ───────────────────────────────────────────────
 app.all('/{*any}', (req, res, next) => {
