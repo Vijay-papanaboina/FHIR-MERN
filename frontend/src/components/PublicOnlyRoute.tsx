@@ -11,7 +11,12 @@ function isValidReturnTo(path: string): boolean {
     )
 }
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+/**
+ * Wrapper for public-only routes (login, register).
+ * Redirects to dashboard if the user is already authenticated.
+ * Honors ?returnTo= param if present and valid.
+ */
+export function PublicOnlyRoute({ children }: { children: ReactNode }) {
     const { data: session, isPending } = authClient.useSession()
     const location = useLocation()
 
@@ -23,12 +28,14 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
         )
     }
 
-    if (!session) {
-        const raw = location.pathname + location.search
-        const returnTo = isValidReturnTo(raw)
-            ? encodeURIComponent(raw)
-            : encodeURIComponent("/")
-        return <Navigate to={`/login?returnTo=${returnTo}`} replace />
+    if (session) {
+        const params = new URLSearchParams(location.search)
+        const returnTo = params.get("returnTo")
+        const target =
+            returnTo && isValidReturnTo(decodeURIComponent(returnTo))
+                ? decodeURIComponent(returnTo)
+                : "/dashboard/patients"
+        return <Navigate to={target} replace />
     }
 
     return children

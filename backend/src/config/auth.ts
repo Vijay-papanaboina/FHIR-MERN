@@ -10,6 +10,7 @@ export let auth: ReturnType<typeof betterAuth>;
 export const initAuth = () => {
     auth = betterAuth({
         secret: env.BETTER_AUTH_SECRET,
+        trustedOrigins: [env.FRONTEND_URL],
         database: mongodbAdapter(getMongoDb()),
         emailAndPassword: {
             enabled: true,

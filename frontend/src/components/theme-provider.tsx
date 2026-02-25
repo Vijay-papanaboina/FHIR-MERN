@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 
 type Theme = "dark" | "light" | "system"
+
+const VALID_THEMES: Theme[] = ["dark", "light", "system"]
 
 type ThemeProviderProps = {
     children: React.ReactNode
@@ -13,49 +15,68 @@ type ThemeProviderState = {
     setTheme: (theme: Theme) => void
 }
 
-const initialState: ThemeProviderState = {
-    theme: "system",
-    setTheme: () => null,
+const ThemeProviderContext = createContext<ThemeProviderState | null>(null)
+
+function safeGetItem(key: string): string | null {
+    if (typeof window === "undefined") return null
+    try {
+        return localStorage.getItem(key)
+    } catch {
+        return null
+    }
 }
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
+function safeSetItem(key: string, value: string): void {
+    if (typeof window === "undefined") return
+    try {
+        localStorage.setItem(key, value)
+    } catch {
+        // Swallow — private browsing or storage quota exceeded
+    }
+}
 
 export function ThemeProvider({
     children,
     defaultTheme = "system",
     storageKey = "fhir-ui-theme",
-    ...props
 }: ThemeProviderProps) {
-    const [theme, setTheme] = useState<Theme>(
-        () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-    )
+    const [theme, setThemeState] = useState<Theme>(() => {
+        const stored = safeGetItem(storageKey)
+        return stored && VALID_THEMES.includes(stored as Theme)
+            ? (stored as Theme)
+            : defaultTheme
+    })
 
     useEffect(() => {
         const root = window.document.documentElement
         root.classList.remove("light", "dark")
 
         if (theme === "system") {
-            const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-                .matches
-                ? "dark"
-                : "light"
-            root.classList.add(systemTheme)
-            return
+            const mql = window.matchMedia("(prefers-color-scheme: dark)")
+            const applySystem = () => {
+                root.classList.remove("light", "dark")
+                root.classList.add(mql.matches ? "dark" : "light")
+            }
+            applySystem()
+            mql.addEventListener("change", applySystem)
+            return () => mql.removeEventListener("change", applySystem)
         }
 
         root.classList.add(theme)
     }, [theme])
 
-    const value = {
-        theme,
-        setTheme: (theme: Theme) => {
-            localStorage.setItem(storageKey, theme)
-            setTheme(theme)
+    const setTheme = useCallback(
+        (newTheme: Theme) => {
+            safeSetItem(storageKey, newTheme)
+            setThemeState(newTheme)
         },
-    }
+        [storageKey],
+    )
+
+    const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme])
 
     return (
-        <ThemeProviderContext.Provider {...props} value={value}>
+        <ThemeProviderContext.Provider value={value}>
             {children}
         </ThemeProviderContext.Provider>
     )
@@ -64,7 +85,7 @@ export function ThemeProvider({
 export const useTheme = () => {
     const context = useContext(ThemeProviderContext)
 
-    if (context === undefined)
+    if (context === null)
         throw new Error("useTheme must be used within a ThemeProvider")
 
     return context

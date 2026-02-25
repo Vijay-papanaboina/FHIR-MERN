@@ -1,3 +1,3 @@
 export function PatientListPage() {
-    return <div>Patient list (coming in Task 6)</div>
+    return <div>No patients yet</div>
 }

@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router"
+import { toast } from "sonner"
 import { Users, Settings, LogOut, Activity } from "lucide-react"
 
 import { authClient } from "@/lib/auth-client"
@@ -34,13 +35,19 @@ function AppSidebar() {
     const navigate = useNavigate()
 
     const handleSignOut = async () => {
-        await authClient.signOut()
-        navigate("/login")
+        try {
+            await authClient.signOut()
+        } catch {
+            toast.error("Sign out failed")
+        } finally {
+            navigate("/login")
+        }
     }
 
-    const initials = session?.user?.name
-        ? session.user.name
-              .split(" ")
+    const nameTrimmed = session?.user?.name?.trim()
+    const initials = nameTrimmed
+        ? nameTrimmed
+              .split(/\s+/)
               .map((n) => n[0])
               .join("")
               .toUpperCase()
@@ -99,17 +106,15 @@ function AppSidebar() {
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild tooltip="User">
-                            <div className="flex items-center gap-2">
-                                <Avatar className="h-6 w-6">
-                                    <AvatarFallback className="text-xs">
-                                        {initials}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <span className="truncate text-sm">
-                                    {session?.user?.name ?? "User"}
-                                </span>
-                            </div>
+                        <SidebarMenuButton tooltip={session?.user?.name ?? "User"}>
+                            <Avatar className="h-6 w-6">
+                                <AvatarFallback className="text-xs">
+                                    {initials}
+                                </AvatarFallback>
+                            </Avatar>
+                            <span className="truncate text-sm">
+                                {session?.user?.name ?? "User"}
+                            </span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
