@@ -1,9 +1,8 @@
-import { NavLink, Outlet, useNavigate } from "react-router"
-import { toast } from "sonner"
-import { Users, Settings, LogOut, Activity } from "lucide-react"
+import { NavLink, Outlet } from "react-router"
+import { Users, Activity } from "lucide-react"
 
-import { authClient } from "@/lib/auth-client"
 import { ModeToggle } from "@/components/mode-toggle"
+import { SidebarUserMenu } from "@/components/SidebarUserMenu"
 import {
     Sidebar,
     SidebarContent,
@@ -21,39 +20,14 @@ import {
     SidebarSeparator,
     SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 const navItems = [
     { title: "Patients", to: "/dashboard/patients", icon: Users },
-    { title: "Settings", to: "/dashboard/settings", icon: Settings },
 ]
 
 function AppSidebar() {
-    const { data: session } = authClient.useSession()
-    const navigate = useNavigate()
-
-    const handleSignOut = async () => {
-        try {
-            await authClient.signOut()
-        } catch {
-            toast.error("Sign out failed")
-        } finally {
-            navigate("/login")
-        }
-    }
-
-    const nameTrimmed = session?.user?.name?.trim()
-    const initials = nameTrimmed
-        ? nameTrimmed
-              .split(/\s+/)
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2)
-        : "?"
-
     return (
         <Sidebar collapsible="icon">
             <SidebarHeader>
@@ -106,25 +80,7 @@ function AppSidebar() {
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton tooltip={session?.user?.name ?? "User"}>
-                            <Avatar className="h-6 w-6">
-                                <AvatarFallback className="text-xs">
-                                    {initials}
-                                </AvatarFallback>
-                            </Avatar>
-                            <span className="truncate text-sm">
-                                {session?.user?.name ?? "User"}
-                            </span>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            tooltip="Sign out"
-                            onClick={handleSignOut}
-                        >
-                            <LogOut />
-                            <span>Sign out</span>
-                        </SidebarMenuButton>
+                        <SidebarUserMenu />
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>
