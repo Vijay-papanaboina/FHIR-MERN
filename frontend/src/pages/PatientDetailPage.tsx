@@ -4,6 +4,7 @@ import { ArrowLeft, AlertCircle, Activity } from "lucide-react"
 import { usePatient } from "@/hooks/use-patient"
 import { useVitals } from "@/hooks/use-vitals"
 import { VitalsChart } from "@/components/VitalsChart"
+import { RecordVitalDialog } from "@/components/RecordVitalDialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -132,10 +133,15 @@ export function PatientDetailPage() {
 
             {/* Vitals section */}
             <div>
-                <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                    <Activity className="h-5 w-5" />
-                    Vital Signs
-                </h2>
+                <div className="flex items-center gap-2 mb-4">
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                        <Activity className="h-5 w-5" />
+                        Vital Signs
+                    </h2>
+                    <span className="ml-auto">
+                        <RecordVitalDialog patientId={id} />
+                    </span>
+                </div>
 
                 {vitalsLoading && (
                     <div className="rounded-md border">

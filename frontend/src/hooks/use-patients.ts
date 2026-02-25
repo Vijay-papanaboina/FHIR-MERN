@@ -6,5 +6,6 @@ export function usePatients(name: string) {
         queryKey: ["patients", name],
         queryFn: () => fetchPatients(name),
         enabled: name.length >= 1,
+        staleTime: 0, // always fresh — user is actively searching
     })
 }

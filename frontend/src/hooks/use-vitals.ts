@@ -6,5 +6,6 @@ export function useVitals(patientId: string) {
         queryKey: ["vitals", patientId],
         queryFn: () => fetchVitals(patientId),
         enabled: patientId.trim().length >= 1,
+        staleTime: 1000 * 30, // 30s — may change when new vitals recorded
     })
 }
