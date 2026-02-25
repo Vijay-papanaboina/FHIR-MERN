@@ -1,48 +1,49 @@
-import { betterAuth } from 'better-auth';
-import { mongodbAdapter } from 'better-auth/adapters/mongodb';
-import { getMongoDb } from './db.js';
-import { env } from './env.js';
-import { logger } from '../utils/logger.js';
+import { betterAuth } from "better-auth";
+import { mongodbAdapter } from "better-auth/adapters/mongodb";
+import { getMongoDb } from "./db.js";
+import { env } from "./env.js";
+import { logger } from "../utils/logger.js";
 
 // Initialized after MongoDB connects — call initAuth() in startServer()
 export let auth: ReturnType<typeof betterAuth>;
 
 export const initAuth = () => {
-    auth = betterAuth({
-        secret: env.BETTER_AUTH_SECRET,
-        database: mongodbAdapter(getMongoDb()),
-        emailAndPassword: {
-            enabled: true,
-            requireEmailVerification: false,
+  auth = betterAuth({
+    secret: env.BETTER_AUTH_SECRET,
+    trustedOrigins: [env.FRONTEND_URL],
+    database: mongodbAdapter(getMongoDb()),
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification: false,
+    },
+    socialProviders: {
+      google: {
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+      },
+    },
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ["google", "email-password"],
+      },
+    },
+    user: {
+      additionalFields: {
+        role: {
+          type: ["patient", "practitioner", "admin"] as const,
+          required: false,
+          defaultValue: "patient",
+          input: false,
         },
-        socialProviders: {
-            google: {
-                clientId: env.GOOGLE_CLIENT_ID,
-                clientSecret: env.GOOGLE_CLIENT_SECRET,
-            },
+        fhirPatientId: {
+          type: "string",
+          required: false,
+          defaultValue: null,
+          input: false,
         },
-        account: {
-            accountLinking: {
-                enabled: true,
-                trustedProviders: ['google', 'email-password'],
-            },
-        },
-        user: {
-            additionalFields: {
-                role: {
-                    type: ['patient', 'practitioner', 'admin'] as const,
-                    required: false,
-                    defaultValue: 'patient',
-                    input: false,
-                },
-                fhirPatientId: {
-                    type: 'string',
-                    required: false,
-                    defaultValue: null,
-                    input: false,
-                },
-            },
-        },
-    });
-    logger.info('Better-Auth initialized');
+      },
+    },
+  });
+  logger.info("Better-Auth initialized");
 };
