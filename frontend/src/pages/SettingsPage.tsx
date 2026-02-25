@@ -1,9 +1,8 @@
-import { useState } from "react"
-import { useNavigate } from "react-router"
-import { toast } from "sonner"
 import { LogOut, User, Moon } from "lucide-react"
 
 import { authClient } from "@/lib/auth-client"
+import { getInitials } from "@/lib/utils"
+import { useSignOut } from "@/hooks/use-sign-out"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -19,32 +18,11 @@ import { Separator } from "@/components/ui/separator"
 
 export function SettingsPage() {
     const { data: session, isPending } = authClient.useSession()
-    const navigate = useNavigate()
-    const [isSigningOut, setIsSigningOut] = useState(false)
+    const { signOut, isSigningOut } = useSignOut()
 
     const userName = session?.user?.name ?? "User"
     const userEmail = session?.user?.email ?? ""
-    const nameTrimmed = userName.trim()
-    const initials = nameTrimmed
-        ? nameTrimmed
-              .split(/\s+/)
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2)
-        : "?"
-
-    const handleSignOut = async () => {
-        if (isSigningOut) return
-        setIsSigningOut(true)
-        try {
-            await authClient.signOut()
-            navigate("/login", { replace: true })
-        } catch {
-            toast.error("Sign out failed")
-            setIsSigningOut(false)
-        }
-    }
+    const initials = getInitials(userName)
 
     if (isPending) {
         return (
@@ -133,7 +111,7 @@ export function SettingsPage() {
                 <CardContent>
                     <Button
                         variant="destructive"
-                        onClick={handleSignOut}
+                        onClick={signOut}
                         disabled={isSigningOut}
                         className="gap-2"
                     >

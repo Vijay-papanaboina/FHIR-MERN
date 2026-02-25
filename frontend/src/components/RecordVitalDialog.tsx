@@ -4,6 +4,7 @@ import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
 import type { VitalsDTO } from "@fhir-mern/shared"
+import { VITAL_PRESETS } from "@/lib/constants"
 import { createVital } from "@/lib/vitals.api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,16 +25,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-
-/** Predefined vital type presets with LOINC codes and units */
-const VITAL_PRESETS = [
-    { code: "8867-4", display: "Heart rate", unit: "beats/minute", unitCode: "/min", example: "72" },
-    { code: "8310-5", display: "Body temperature", unit: "°C", unitCode: "Cel", example: "36.6" },
-    { code: "8480-6", display: "Systolic blood pressure", unit: "mmHg", unitCode: "mm[Hg]", example: "120" },
-    { code: "8462-4", display: "Diastolic blood pressure", unit: "mmHg", unitCode: "mm[Hg]", example: "80" },
-    { code: "9279-1", display: "Respiratory rate", unit: "breaths/minute", unitCode: "/min", example: "16" },
-    { code: "2708-6", display: "Oxygen saturation", unit: "%", unitCode: "%", example: "98" },
-] as const
 
 interface RecordVitalDialogProps {
     patientId: string

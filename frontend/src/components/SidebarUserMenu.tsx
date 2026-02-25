@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router"
-import { toast } from "sonner"
 import { LogOut, Settings } from "lucide-react"
 
 import { authClient } from "@/lib/auth-client"
+import { getInitials } from "@/lib/utils"
+import { useSignOut } from "@/hooks/use-sign-out"
 import {
     SidebarMenuButton,
 } from "@/components/ui/sidebar"
@@ -20,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 export function SidebarUserMenu() {
     const { data: session, isPending } = authClient.useSession()
     const navigate = useNavigate()
+    const { signOut } = useSignOut()
 
     if (isPending) {
         return (
@@ -32,24 +34,7 @@ export function SidebarUserMenu() {
 
     const userName = session?.user?.name ?? "User"
     const userEmail = session?.user?.email ?? ""
-    const nameTrimmed = userName.trim()
-    const initials = nameTrimmed
-        ? nameTrimmed
-              .split(/\s+/)
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2)
-        : "?"
-
-    const handleSignOut = async () => {
-        try {
-            await authClient.signOut()
-            navigate("/login", { replace: true })
-        } catch {
-            toast.error("Sign out failed")
-        }
-    }
+    const initials = getInitials(userName)
 
     return (
         <DropdownMenu>
@@ -92,7 +77,7 @@ export function SidebarUserMenu() {
                     Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem onClick={signOut}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign out
                 </DropdownMenuItem>
