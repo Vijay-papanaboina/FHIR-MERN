@@ -15,6 +15,8 @@ import { globalLimiter, authLimiter } from "./middleware/rateLimiter.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import patientRoutes from "./routes/patient.routes.js";
 import vitalsRoutes from "./routes/vitals.routes.js";
+import authRoutes from "./routes/auth.routes.js";
+import assignmentRoutes from "./routes/assignment.routes.js";
 
 const app = express();
 const port = env.PORT;
@@ -34,13 +36,9 @@ app.use(
 app.use(correlationId);
 app.use(requestLogger);
 
-// ── Better-Auth (before express.json — it parses its own body) ──
-let authHandler: ReturnType<typeof toNodeHandler>;
+// ── Better-Auth Routes (before express.json — it parses its own body) ──
 app.use("/api/auth", authLimiter);
-app.all("/api/auth/{*any}", (req, res) => {
-  if (!authHandler) authHandler = toNodeHandler(auth);
-  return authHandler(req, res);
-});
+app.use("/api/auth", authRoutes);
 
 // ── Rate limiter & body parser ──────────────────────────────────
 app.use(globalLimiter);
@@ -53,6 +51,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/patients", patientRoutes);
 app.use("/api/patients/:id/vitals", vitalsRoutes);
+app.use("/api/assignments", assignmentRoutes);
 
 // ── 404 catch-all ───────────────────────────────────────────────
 app.all("/{*any}", (req, res, next) => {

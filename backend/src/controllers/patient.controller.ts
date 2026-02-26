@@ -3,6 +3,8 @@ import { z } from "zod";
 import { jsend } from "../utils/jsend.js";
 import { AppError } from "../utils/AppError.js";
 import { searchPatients, getPatient } from "../services/patient.service.js";
+import { getUserAssignments } from "../services/assignment.service.js";
+import { logger } from "../utils/logger.js";
 
 // ── Validation schemas ──────────────────────────────────────────
 const searchQuerySchema = z.object({
@@ -18,7 +20,7 @@ const idParamSchema = z.object({
 
 /**
  * GET /api/patients?name=xxx
- * Search for patients by name.
+ * Search for patients by name (admin only).
  */
 export const searchPatientsHandler = async (req: Request, res: Response) => {
   const result = searchQuerySchema.safeParse(req.query);
@@ -37,6 +39,7 @@ export const searchPatientsHandler = async (req: Request, res: Response) => {
 /**
  * GET /api/patients/:id
  * Get a single patient by FHIR ID.
+ * Requires active assignment (or admin).
  */
 export const getPatientHandler = async (req: Request, res: Response) => {
   const result = idParamSchema.safeParse(req.params);
@@ -50,4 +53,37 @@ export const getPatientHandler = async (req: Request, res: Response) => {
 
   const patient = await getPatient(result.data.id);
   res.json(jsend.success(patient));
+};
+
+/**
+ * GET /api/patients/assigned
+ * Get all patients assigned to the current user.
+ * Fetches active assignments, then resolves each to a PatientDTO from FHIR.
+ */
+export const getAssignedPatientsHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  if (!req.user?.id) {
+    throw new AppError("Authentication required", 401);
+  }
+
+  const assignments = await getUserAssignments(req.user.id);
+
+  // Fetch each assigned patient from FHIR — use allSettled so one
+  // missing/failed patient record doesn't break the entire response.
+  const results = await Promise.allSettled(
+    assignments.map((a) => getPatient(a.patientFhirId)),
+  );
+
+  const patients = results.flatMap((r, i) => {
+    if (r.status === "fulfilled") return [r.value];
+    logger.warn(
+      `Failed to fetch patient ${assignments[i]!.patientFhirId}: %s`,
+      r.reason instanceof Error ? r.reason.message : String(r.reason),
+    );
+    return [];
+  });
+
+  res.json(jsend.success(patients));
 };
