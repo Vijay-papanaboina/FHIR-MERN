@@ -14,7 +14,7 @@ const router = Router();
  * Returns the current authenticated user session and role.
  */
 router.get("/me", requireAuth, (req, res) => {
-  if (req.user?.role) {
+  if (req.user && req.user.role !== undefined) {
     logger.info(`User role found: ${req.user.role}`);
     res.json(jsend.success(req.user));
   } else {

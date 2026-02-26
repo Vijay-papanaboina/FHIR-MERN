@@ -77,7 +77,7 @@ export const isAssignedToPatient =
 
       // Attach to request for downstream use (e.g., audit logging)
       req.assignment = assignment;
-      next();
+      return next();
     } catch (err) {
       next(err);
     }

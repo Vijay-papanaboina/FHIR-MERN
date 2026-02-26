@@ -102,9 +102,16 @@ export const getUserAssignments = (
  * Get all practitioners in the system.
  * Used by admin UI to populate the assignment form dropdown.
  */
-export const getPractitioners = () => {
+export interface PractitionerSummary {
+  _id: string;
+  name: string;
+  email: string;
+  image?: string | null;
+}
+
+export const getPractitioners = (): Promise<PractitionerSummary[]> => {
   return User.find(
     { role: "practitioner" },
     { _id: 1, name: 1, email: 1, image: 1 },
-  ).lean();
+  ).lean<PractitionerSummary[]>();
 };

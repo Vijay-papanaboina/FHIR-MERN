@@ -79,7 +79,8 @@ export const getAssignedPatientsHandler = async (
   const patients = results.flatMap((r, i) => {
     if (r.status === "fulfilled") return [r.value];
     logger.warn(
-      `Failed to fetch patient ${assignments[i]?.patientFhirId}: ${r.reason}`,
+      `Failed to fetch patient ${assignments[i]!.patientFhirId}: %s`,
+      r.reason instanceof Error ? r.reason.message : String(r.reason),
     );
     return [];
   });
