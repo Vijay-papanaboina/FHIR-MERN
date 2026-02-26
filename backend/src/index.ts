@@ -17,6 +17,7 @@ import patientRoutes from "./routes/patient.routes.js";
 import vitalsRoutes from "./routes/vitals.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import assignmentRoutes from "./routes/assignment.routes.js";
+import alertRoutes from "./routes/alert.routes.js";
 
 const app = express();
 const port = env.PORT;
@@ -52,6 +53,7 @@ app.get("/", (req, res) => {
 app.use("/api/patients", patientRoutes);
 app.use("/api/patients/:id/vitals", vitalsRoutes);
 app.use("/api/assignments", assignmentRoutes);
+app.use("/api/alerts", alertRoutes);
 
 // ── 404 catch-all ───────────────────────────────────────────────
 app.all("/{*any}", (req, res, next) => {
