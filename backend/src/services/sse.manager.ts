@@ -89,8 +89,17 @@ export const sendToUser = (userId: string, event: SseEvent): void => {
   const userConns = connections.get(userId);
   if (!userConns) return;
 
-  for (const res of userConns) {
-    writeEvent(res, event);
+  const alive = userConns.filter((res) => writeEvent(res, event));
+
+  if (alive.length === 0) {
+    logger.info(`SSE: all connections for user ${userId} pruned (dead)`);
+    connections.delete(userId);
+  } else if (alive.length !== userConns.length) {
+    const prunedCount = userConns.length - alive.length;
+    logger.info(
+      `SSE: pruned ${prunedCount} dead connections for user ${userId} (${alive.length} remain)`,
+    );
+    connections.set(userId, alive);
   }
 };
 

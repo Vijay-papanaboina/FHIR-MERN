@@ -1,8 +1,9 @@
-import { Schema, model, type Document } from "mongoose";
+import mongoose, { Schema, model, type Document } from "mongoose";
 
 // ── Interface ────────────────────────────────────────────────────
 
-export interface IAlert extends Document {
+export interface IAlert extends Document<string> {
+  _id: string;
   patientFhirId: string;
   observationId: string;
   type: string;
@@ -20,6 +21,10 @@ export interface IAlert extends Document {
 
 const alertSchema = new Schema<IAlert>(
   {
+    _id: {
+      type: String,
+      default: () => new mongoose.Types.ObjectId().toString(),
+    },
     patientFhirId: { type: String, required: true },
     observationId: { type: String, required: true },
     type: { type: String, required: true },
@@ -35,7 +40,7 @@ const alertSchema = new Schema<IAlert>(
     acknowledgedBy: { type: [String], default: [] },
     recordDate: { type: Date, required: true },
   },
-  { timestamps: { createdAt: true, updatedAt: false } },
+  { timestamps: { createdAt: true, updatedAt: false }, collection: "alert" },
 );
 
 // ── Indexes ──────────────────────────────────────────────────────

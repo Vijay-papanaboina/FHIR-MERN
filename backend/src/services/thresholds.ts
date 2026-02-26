@@ -180,7 +180,8 @@ export const evaluateObservation = (
   const observationId = String(observation.id ?? "");
   if (!observationId) return null;
 
-  const recordDate = extractRecordDate(observation)!;
+  const recordDate = extractRecordDate(observation);
+  if (!recordDate) return null;
 
   const severityPrefix =
     breach.severity === "critical" ? "🚨 CRITICAL" : "⚠️ WARNING";

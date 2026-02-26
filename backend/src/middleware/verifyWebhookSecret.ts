@@ -1,6 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
+import crypto from "node:crypto";
 import { env } from "../config/env.js";
 import { logger } from "../utils/logger.js";
+
+let warnedMissingSecret = false;
 
 /**
  * Middleware to verify the X-Webhook-Secret header on incoming
@@ -18,14 +21,36 @@ export const verifyWebhookSecret = (
 
   // If no secret configured, skip verification (dev mode)
   if (!secret) {
+    if (!warnedMissingSecret) {
+      logger.warn(
+        "WEBHOOK_SECRET not set — skipping webhook verification. Insecure in production.",
+      );
+      warnedMissingSecret = true;
+    }
     return next();
   }
 
   const provided = req.headers["x-webhook-secret"];
 
-  if (provided !== secret) {
+  // Must be a single string header
+  if (typeof provided !== "string") {
     logger.warn(
-      `Webhook auth failed from ${req.ip} — invalid or missing X-Webhook-Secret`,
+      `Webhook auth failed from ${req.ip} — missing X-Webhook-Secret`,
+    );
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  // Constant-time comparison to prevent timing attacks
+  const secretBuf = Buffer.from(secret);
+  const providedBuf = Buffer.from(provided);
+
+  if (
+    secretBuf.length !== providedBuf.length ||
+    !crypto.timingSafeEqual(secretBuf, providedBuf)
+  ) {
+    logger.warn(
+      `Webhook auth failed from ${req.ip} — invalid X-Webhook-Secret`,
     );
     res.status(401).json({ error: "Unauthorized" });
     return;

@@ -2,6 +2,9 @@ import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/AppError.js";
 import { jsend } from "../utils/jsend.js";
 import { logger } from "../utils/logger.js";
+import { env } from "../config/env.js";
+
+const isDev = env.NODE_ENV === "development" || env.NODE_ENV === "test";
 
 /**
  * Global error-handling middleware.
@@ -9,6 +12,7 @@ import { logger } from "../utils/logger.js";
  *
  * - Operational errors (AppError): returns the error message to the client.
  * - Unknown errors: returns a generic "Internal Server Error" (never leaks internals).
+ * - In development: includes stack traces in error responses for easier debugging.
  */
 export const errorHandler = (
   err: Error,
@@ -33,16 +37,16 @@ export const errorHandler = (
   // ── Operational (expected) errors ───────────────────────────
   if (err instanceof AppError) {
     const { statusCode, status, message } = err;
+    const base =
+      status === "fail" ? jsend.fail({ message }) : jsend.error(message);
 
-    if (status === "fail") {
-      res.status(statusCode).json(jsend.fail({ message }));
-      return;
-    }
-
-    res.status(statusCode).json(jsend.error(message));
+    res.status(statusCode).json(isDev ? { ...base, stack: err.stack } : base);
     return;
   }
 
   // ── Unknown / programming errors ────────────────────────────
-  res.status(500).json(jsend.error("Internal Server Error"));
+  const base = jsend.error("Internal Server Error");
+  res
+    .status(500)
+    .json(isDev ? { ...base, error: err.message, stack: err.stack } : base);
 };

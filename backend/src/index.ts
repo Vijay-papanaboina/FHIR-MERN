@@ -44,7 +44,7 @@ app.use("/api/auth", authRoutes);
 
 // ── Rate limiter & body parser ──────────────────────────────────
 app.use(globalLimiter);
-app.use(express.json());
+app.use(express.json({ type: ["application/json", "application/fhir+json"] }));
 
 // ── Routes ──────────────────────────────────────────────────────
 app.get("/", (req, res) => {

@@ -1,8 +1,11 @@
 import winston from "winston";
 
-const { combine, timestamp, printf, colorize, errors } = winston.format;
+const { combine, timestamp, printf, colorize, errors, json } = winston.format;
 
-const myFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
+const nodeEnv = process.env["NODE_ENV"];
+const isDev = nodeEnv === "development";
+
+const prettyFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
   let log = `${timestamp} [${level}]: ${message}`;
   if (stack) {
     log += `\n${stack}`;
@@ -16,14 +19,23 @@ const myFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
 
 const isTTY = process.stdout.isTTY ?? false;
 
+/**
+ * Build the winston formats based on environment and TTY status.
+ */
+function buildFormats() {
+  if (isDev) {
+    return [...(isTTY ? [colorize()] : []), prettyFormat];
+  }
+  return [json()];
+}
+
 export const logger = winston.createLogger({
-  level: process.env["LOG_LEVEL"]?.toLowerCase() || "info",
-  silent: process.env["NODE_ENV"] === "test",
+  level: process.env["LOG_LEVEL"]?.toLowerCase() || (isDev ? "debug" : "info"),
+  silent: nodeEnv === "test",
   format: combine(
     errors({ stack: true }),
-    ...(isTTY ? [colorize()] : []),
     timestamp({ format: () => new Date().toISOString() }),
-    myFormat,
+    ...buildFormats(),
   ),
   transports: [new winston.transports.Console()],
 });

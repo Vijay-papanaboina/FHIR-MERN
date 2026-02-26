@@ -35,7 +35,7 @@ export const registerFhirSubscription = async (): Promise<void> => {
   const subscription: Record<string, unknown> = {
     resourceType: "Subscription",
     id: SUBSCRIPTION_ID,
-    status: "requested",
+    status: "active",
     reason: "Monitor new Observations for clinical alerts",
     criteria: "Observation?",
     channel: {

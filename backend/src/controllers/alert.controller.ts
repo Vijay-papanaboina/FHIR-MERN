@@ -5,8 +5,10 @@ import { jsend } from "../utils/jsend.js";
 import { addConnection, removeConnection } from "../services/sse.manager.js";
 import {
   getAlertsForUser,
+  getAllAlerts,
   getAlertsByPatient,
   acknowledgeAlert,
+  getAlertById,
 } from "../repositories/alert.repository.js";
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
@@ -18,7 +20,8 @@ const HEARTBEAT_INTERVAL_MS = 30_000;
  */
 export const sseStreamHandler = (req: Request, res: Response): void => {
   if (!req.user?.id) {
-    throw new AppError("Authentication required", 401);
+    res.status(401).json(jsend.fail({ message: "Authentication required" }));
+    return;
   }
 
   const userId = req.user.id;
@@ -42,11 +45,19 @@ export const sseStreamHandler = (req: Request, res: Response): void => {
 
   // Heartbeat to keep the connection alive through proxies
   const heartbeat = setInterval(() => {
-    res.write(`: heartbeat\n\n`);
+    try {
+      res.write(`: heartbeat\n\n`);
+    } catch (err) {
+      logger.error(`SSE heartbeat write failed for user ${userId}:`, err);
+      cleanup();
+    }
   }, HEARTBEAT_INTERVAL_MS);
 
-  // Clean up on disconnect or error
+  // Clean up on disconnect or error (idempotent)
+  let cleanedUp = false;
   const cleanup = () => {
+    if (cleanedUp) return;
+    cleanedUp = true;
     clearInterval(heartbeat);
     removeConnection(userId, res);
   };
@@ -73,8 +84,26 @@ export const getMyAlerts = async (
     const userId = req.user?.id;
     if (!userId) throw new AppError("Authentication required", 401);
 
-    const alerts = await getAlertsForUser(userId);
-    res.json(jsend.success(alerts));
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.max(
+      1,
+      Math.min(100, parseInt(req.query.limit as string) || 50),
+    );
+    const skip = (page - 1) * limit;
+
+    const result =
+      req.user?.role === "admin"
+        ? await getAllAlerts({ limit, skip })
+        : await getAlertsForUser(userId, { limit, skip });
+
+    res.json(
+      jsend.success({
+        items: result.items,
+        total: result.total,
+        page,
+        limit,
+      }),
+    );
   } catch (err) {
     next(err);
   }
@@ -94,8 +123,22 @@ export const getPatientAlerts = async (
     const patientFhirId = req.params.patientFhirId as string;
     if (!patientFhirId) throw new AppError("patientFhirId is required", 400);
 
-    const alerts = await getAlertsByPatient(patientFhirId);
-    res.json(jsend.success(alerts));
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.max(
+      1,
+      Math.min(100, parseInt(req.query.limit as string) || 50),
+    );
+    const skip = (page - 1) * limit;
+
+    const result = await getAlertsByPatient(patientFhirId, { limit, skip });
+    res.json(
+      jsend.success({
+        items: result.items,
+        total: result.total,
+        page,
+        limit,
+      }),
+    );
   } catch (err) {
     next(err);
   }
@@ -117,16 +160,17 @@ export const acknowledgeAlertHandler = async (
     const id = req.params.id as string;
     if (!id) throw new AppError("Alert ID is required", 400);
 
-    const alert = await acknowledgeAlert(id, userId);
-    if (!alert) throw new AppError("Alert not found", 404);
+    // Fetch first, verify auth, then mutate
+    const existing = await getAlertById(id);
+    if (!existing) throw new AppError("Alert not found", 404);
 
-    // Only recipients of the alert (or admins) can acknowledge it
-    const isRecipient = alert.sentToUserIds.includes(userId);
+    const isRecipient = existing.sentToUserIds.includes(userId);
     const isAdmin = req.user?.role === "admin";
     if (!isRecipient && !isAdmin) {
       throw new AppError("You are not a recipient of this alert", 403);
     }
 
+    const alert = await acknowledgeAlert(id, userId);
     res.json(jsend.success(alert));
   } catch (err) {
     next(err);

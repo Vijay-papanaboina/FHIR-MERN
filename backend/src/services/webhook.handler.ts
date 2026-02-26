@@ -40,7 +40,18 @@ export const handleObservationWebhook = async (
     const alertPayload = evaluateObservation(observation);
     if (!alertPayload) return;
 
-    // 2. Find recipients
+    // 2. Validate recordDate before DB queries
+    const recordDate = alertPayload.recordDate
+      ? new Date(alertPayload.recordDate)
+      : null;
+    if (!recordDate || isNaN(recordDate.getTime())) {
+      logger.warn(
+        `Observation ${observationId} has invalid or missing effectiveDateTime, skipping alert`,
+      );
+      return;
+    }
+
+    // 3. Find recipients
     const [assignments, admins] = await Promise.all([
       getAssignmentsByPatient(alertPayload.patientFhirId, true),
       User.find({ role: "admin" }, { _id: 1 }).lean(),
@@ -49,7 +60,7 @@ export const handleObservationWebhook = async (
     // Only primary + covering practitioners (not consulting)
     const practitionerIds = assignments
       .filter((a) => a.assignmentRole !== "consulting")
-      .map((a) => a.assignedUserId);
+      .map((a) => a.assignedUserId.toString());
 
     const adminIds = admins.map((a) => a._id.toString());
 
@@ -59,17 +70,6 @@ export const handleObservationWebhook = async (
     if (recipientIds.length === 0) {
       logger.info(
         `Alert triggered for patient ${alertPayload.patientFhirId} but no recipients found`,
-      );
-      return;
-    }
-
-    // 3. Validate recordDate
-    const recordDate = alertPayload.recordDate
-      ? new Date(alertPayload.recordDate)
-      : null;
-    if (!recordDate || isNaN(recordDate.getTime())) {
-      logger.warn(
-        `Observation ${observationId} has invalid or missing effectiveDateTime, skipping alert`,
       );
       return;
     }
@@ -125,7 +125,7 @@ export const handleObservationWebhook = async (
     // Log but don't crash — HAPI already got 200
     logger.error(
       `Webhook processing error: %s`,
-      err instanceof Error ? err.message : String(err),
+      err instanceof Error ? (err.stack ?? err.message) : String(err),
     );
   }
 };

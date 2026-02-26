@@ -5,12 +5,42 @@ import { Alert, type IAlert } from "../models/alert.model.js";
  */
 export const getAlertsByPatient = async (
   patientFhirId: string,
-  limit = 50,
-): Promise<IAlert[]> => {
-  return Alert.find({ patientFhirId })
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    .lean<IAlert[]>();
+  options: { limit?: number; skip?: number } = {},
+): Promise<{ items: IAlert[]; total: number }> => {
+  const limit = options.limit ?? 50;
+  const skip = options.skip ?? 0;
+
+  const [items, total] = await Promise.all([
+    Alert.find({ patientFhirId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean<IAlert[]>(),
+    Alert.countDocuments({ patientFhirId }),
+  ]);
+
+  return { items, total };
+};
+
+/**
+ * Get all alerts (admin global feed), sorted by most recent first.
+ */
+export const getAllAlerts = async (
+  options: { limit?: number; skip?: number } = {},
+): Promise<{ items: IAlert[]; total: number }> => {
+  const limit = options.limit ?? 50;
+  const skip = options.skip ?? 0;
+
+  const [items, total] = await Promise.all([
+    Alert.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean<IAlert[]>(),
+    Alert.countDocuments(),
+  ]);
+
+  return { items, total };
 };
 
 /**
@@ -18,12 +48,21 @@ export const getAlertsByPatient = async (
  */
 export const getAlertsForUser = async (
   userId: string,
-  limit = 50,
-): Promise<IAlert[]> => {
-  return Alert.find({ sentToUserIds: userId })
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    .lean<IAlert[]>();
+  options: { limit?: number; skip?: number } = {},
+): Promise<{ items: IAlert[]; total: number }> => {
+  const limit = options.limit ?? 50;
+  const skip = options.skip ?? 0;
+
+  const [items, total] = await Promise.all([
+    Alert.find({ sentToUserIds: userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean<IAlert[]>(),
+    Alert.countDocuments({ sentToUserIds: userId }),
+  ]);
+
+  return { items, total };
 };
 
 /**
@@ -39,4 +78,15 @@ export const acknowledgeAlert = async (
     { $addToSet: { acknowledgedBy: userId } },
     { new: true },
   ).lean<IAlert | null>();
+};
+
+import mongoose from "mongoose";
+
+/**
+ * Fetch a single alert by its ID.
+ * Returns null for invalid ObjectIds.
+ */
+export const getAlertById = async (alertId: string): Promise<IAlert | null> => {
+  if (!mongoose.isValidObjectId(alertId)) return null;
+  return Alert.findById(alertId).lean<IAlert | null>();
 };

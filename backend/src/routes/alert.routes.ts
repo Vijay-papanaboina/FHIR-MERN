@@ -14,7 +14,8 @@ import { verifyWebhookSecret } from "../middleware/verifyWebhookSecret.js";
 const router = Router();
 
 // ── Webhook (called by HAPI FHIR — verified via shared secret) ──
-router.post("/webhook", verifyWebhookSecret, handleObservationWebhook);
+// Matches /webhook and any subpath (e.g. /webhook/Observation/123)
+router.use("/webhook", verifyWebhookSecret, handleObservationWebhook);
 
 // ── Authenticated routes ─────────────────────────────────────────
 router.use(requireAuth, requireRole("practitioner", "admin"));
