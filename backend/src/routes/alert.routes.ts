@@ -1,7 +1,13 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/authGuard.js";
 import { requireRole } from "../middleware/requireRole.js";
-import { sseStreamHandler } from "../controllers/alert.controller.js";
+import { isAssignedToPatient } from "../middleware/isAssignedToPatient.js";
+import {
+  sseStreamHandler,
+  getMyAlerts,
+  getPatientAlerts,
+  acknowledgeAlertHandler,
+} from "../controllers/alert.controller.js";
 import { handleObservationWebhook } from "../services/webhook.handler.js";
 import { verifyWebhookSecret } from "../middleware/verifyWebhookSecret.js";
 
@@ -15,5 +21,14 @@ router.use(requireAuth, requireRole("practitioner", "admin"));
 
 // ── SSE stream ───────────────────────────────────────────────────
 router.get("/stream", sseStreamHandler);
+
+// ── REST API ─────────────────────────────────────────────────────
+router.get("/", getMyAlerts);
+router.get(
+  "/patient/:patientFhirId",
+  isAssignedToPatient("primary", "covering", { paramName: "patientFhirId" }),
+  getPatientAlerts,
+);
+router.post("/:id/acknowledge", acknowledgeAlertHandler);
 
 export default router;

@@ -46,4 +46,7 @@ alertSchema.index({ patientFhirId: 1, createdAt: -1 });
 // Prevents duplicate alerts for the same observation
 alertSchema.index({ observationId: 1 }, { unique: true });
 
+// Alerts sent to a user — used by getAlertsForUser
+alertSchema.index({ sentToUserIds: 1, createdAt: -1 });
+
 export const Alert = model<IAlert>("Alert", alertSchema);

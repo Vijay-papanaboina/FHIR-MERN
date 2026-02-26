@@ -1,7 +1,13 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/AppError.js";
 import { logger } from "../utils/logger.js";
+import { jsend } from "../utils/jsend.js";
 import { addConnection, removeConnection } from "../services/sse.manager.js";
+import {
+  getAlertsForUser,
+  getAlertsByPatient,
+  acknowledgeAlert,
+} from "../repositories/alert.repository.js";
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
 
@@ -50,4 +56,79 @@ export const sseStreamHandler = (req: Request, res: Response): void => {
     logger.warn(`SSE error for user ${userId}: ${err.message}`);
     cleanup();
   });
+};
+
+// ── REST handlers ────────────────────────────────────────────────
+
+/**
+ * GET /api/alerts
+ * Returns alerts sent to the current user.
+ */
+export const getMyAlerts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) throw new AppError("Authentication required", 401);
+
+    const alerts = await getAlertsForUser(userId);
+    res.json(jsend.success(alerts));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/alerts/patient/:patientFhirId
+ * Returns alerts for a specific patient.
+ * Requires the caller to be assigned to the patient or be an admin.
+ */
+export const getPatientAlerts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const patientFhirId = req.params.patientFhirId as string;
+    if (!patientFhirId) throw new AppError("patientFhirId is required", 400);
+
+    const alerts = await getAlertsByPatient(patientFhirId);
+    res.json(jsend.success(alerts));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /api/alerts/:id/acknowledge
+ * Marks an alert as acknowledged by the current user.
+ */
+export const acknowledgeAlertHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) throw new AppError("Authentication required", 401);
+
+    const id = req.params.id as string;
+    if (!id) throw new AppError("Alert ID is required", 400);
+
+    const alert = await acknowledgeAlert(id, userId);
+    if (!alert) throw new AppError("Alert not found", 404);
+
+    // Only recipients of the alert (or admins) can acknowledge it
+    const isRecipient = alert.sentToUserIds.includes(userId);
+    const isAdmin = req.user?.role === "admin";
+    if (!isRecipient && !isAdmin) {
+      throw new AppError("You are not a recipient of this alert", 403);
+    }
+
+    res.json(jsend.success(alert));
+  } catch (err) {
+    next(err);
+  }
 };
