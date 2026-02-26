@@ -17,6 +17,8 @@ import patientRoutes from "./routes/patient.routes.js";
 import vitalsRoutes from "./routes/vitals.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import assignmentRoutes from "./routes/assignment.routes.js";
+import alertRoutes from "./routes/alert.routes.js";
+import { registerFhirSubscription } from "./services/subscription.service.js";
 
 const app = express();
 const port = env.PORT;
@@ -42,7 +44,7 @@ app.use("/api/auth", authRoutes);
 
 // ── Rate limiter & body parser ──────────────────────────────────
 app.use(globalLimiter);
-app.use(express.json());
+app.use(express.json({ type: ["application/json", "application/fhir+json"] }));
 
 // ── Routes ──────────────────────────────────────────────────────
 app.get("/", (req, res) => {
@@ -52,6 +54,7 @@ app.get("/", (req, res) => {
 app.use("/api/patients", patientRoutes);
 app.use("/api/patients/:id/vitals", vitalsRoutes);
 app.use("/api/assignments", assignmentRoutes);
+app.use("/api/alerts", alertRoutes);
 
 // ── 404 catch-all ───────────────────────────────────────────────
 app.all("/{*any}", (req, res, next) => {
@@ -66,6 +69,7 @@ const startServer = async () => {
   await connectMongo();
   initAuth();
   await verifyFhirConnection();
+  await registerFhirSubscription();
 
   app.listen(port, () => {
     logger.info(`Server running at http://localhost:${port}`);

@@ -5,6 +5,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const envSchema = z.object({
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
+
   PORT: z
     .string()
     .default("3000")
@@ -25,6 +29,15 @@ const envSchema = z.object({
 
   GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required"),
   GOOGLE_CLIENT_SECRET: z.string().min(1, "GOOGLE_CLIENT_SECRET is required"),
+
+  BACKEND_WEBHOOK_URL: z
+    .url("BACKEND_WEBHOOK_URL must be a valid URL")
+    .optional(),
+
+  WEBHOOK_SECRET: z
+    .string()
+    .min(16, "WEBHOOK_SECRET must be at least 16 characters")
+    .optional(),
 });
 
 // Infer the TypeScript type from the schema

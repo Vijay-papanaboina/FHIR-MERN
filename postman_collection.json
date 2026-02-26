@@ -1,0 +1,580 @@
+{
+    "info": {
+        "name": "FHIR-MERN API - Corrected v2",
+        "description": "Exhaustive API documentation for FHIR-MERN.\n\n### Environment Variables\n- `host`: e.g. `localhost:3000`\n- `protocol`: e.g. `http` or `https`\n- `origin`: e.g. `http://localhost:5173` (Required for Better Auth routes)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Get My Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Origin",
+                                "value": "{{origin}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/auth/me",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Sign Up",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Origin",
+                                "value": "{{origin}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\",\n  \"name\": \"John Doe\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/auth/sign-up/email",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "sign-up",
+                                "email"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Sign In",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Origin",
+                                "value": "{{origin}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"boss@example.com\",\n  \"password\": \"Password123!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/auth/sign-in/email",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "sign-in",
+                                "email"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Sign Out",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Origin",
+                                "value": "{{origin}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/auth/sign-out",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "sign-out"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Session",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Origin",
+                                "value": "{{origin}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/auth/session",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "session"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Origin",
+                                "value": "{{origin}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"John Updated\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/auth/update-user",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "update-user"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Change Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Origin",
+                                "value": "{{origin}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"currentPassword\": \"Password123!\",\n  \"newPassword\": \"NewPassword456!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/auth/change-password",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "change-password"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Patients",
+            "item": [
+                {
+                    "name": "Search Patients",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/patients?name=John",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "patients"
+                            ],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "John"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Assigned Patients",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/patients/assigned",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "patients",
+                                "assigned"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Patient Details",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/patients/:id",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "patients",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1001"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Vitals",
+            "item": [
+                {
+                    "name": "Get Vitals History",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/patients/:id/vitals",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "patients",
+                                ":id",
+                                "vitals"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1001"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Log New Vital",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"code\": \"8867-4\",\n  \"display\": \"Heart rate\",\n  \"value\": 190,\n  \"unit\": \"bpm\",\n  \"unitCode\": \"/min\",\n  \"effectiveDateTime\": \"2026-02-26T17:35:00Z\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/patients/:id/vitals",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "patients",
+                                ":id",
+                                "vitals"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1001"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Assignments",
+            "item": [
+                {
+                    "name": "Create Assignment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"patientFhirId\": \"1001\",\n  \"assignedUserId\": \"practitioner-uuid\",\n  \"assignmentRole\": \"primary\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/assignments",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "assignments"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Assignments",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/assignments",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "assignments"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Practitioners",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/assignments/practitioners",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "assignments",
+                                "practitioners"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Deactivate Assignment",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/assignments/:id",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "assignments",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "assignment-uuid"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Alerts",
+            "item": [
+                {
+                    "name": "SSE Stream",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/alerts/stream",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "alerts",
+                                "stream"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get My Alerts",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/alerts",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "alerts"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Patient Alerts",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/alerts/patient/:patientFhirId",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "alerts",
+                                "patient",
+                                ":patientFhirId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "patientFhirId",
+                                    "value": "1001"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Acknowledge Alert",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/alerts/:id/acknowledge",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "alerts",
+                                ":id",
+                                "acknowledge"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "alert-uuid"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "FHIR Webhook (Internal)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/fhir+json"
+                            },
+                            {
+                                "key": "X-Webhook-Secret",
+                                "value": "my-secret"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"resourceType\": \"Observation\",\n  \"id\": \"1105\",\n  \"status\": \"final\",\n  \"code\": { \"coding\": [ { \"system\": \"http://loinc.org\", \"code\": \"8867-4\" } ] },\n  \"subject\": { \"reference\": \"Patient/1001\" },\n  \"valueQuantity\": { \"value\": 195, \"unit\": \"bpm\" }\n}"
+                        },
+                        "url": {
+                            "raw": "{{protocol}}://{{host}}/api/alerts/webhook/Observation/1105",
+                            "protocol": "{{protocol}}",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "api",
+                                "alerts",
+                                "webhook",
+                                "Observation",
+                                "1105"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "host",
+            "value": "localhost:3000"
+        },
+        {
+            "key": "protocol",
+            "value": "http"
+        },
+        {
+            "key": "origin",
+            "value": "http://localhost:5173"
+        }
+    ]
+}

@@ -43,6 +43,11 @@ function createAuth() {
         },
       },
     },
+    advanced: {
+      database: {
+        generateId: () => crypto.randomUUID(),
+      },
+    },
   });
 }
 

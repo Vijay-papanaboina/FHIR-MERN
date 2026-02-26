@@ -1,8 +1,9 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, model, Document } from "mongoose";
 
 export type AssignmentRole = "primary" | "covering" | "consulting";
 
-export interface IAssignment extends Document {
+export interface IAssignment extends Document<string> {
+  _id: string;
   patientFhirId: string;
   assignedUserId: string;
   assignedByUserId: string;
@@ -16,6 +17,10 @@ export interface IAssignment extends Document {
 
 const assignmentSchema = new Schema<IAssignment>(
   {
+    _id: {
+      type: String,
+      default: () => new mongoose.Types.ObjectId().toString(),
+    },
     patientFhirId: { type: String, required: true },
     assignedUserId: { type: String, required: true },
     assignedByUserId: { type: String, required: true },
@@ -28,7 +33,7 @@ const assignmentSchema = new Schema<IAssignment>(
     assignedAt: { type: Date, default: Date.now, required: true },
     deactivatedAt: { type: Date, default: null },
   },
-  { timestamps: true },
+  { timestamps: true, collection: "assignment" },
 );
 
 // ── Indexes ──────────────────────────────────────────────────────

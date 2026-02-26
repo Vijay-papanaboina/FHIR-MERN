@@ -30,9 +30,14 @@ services:
       - spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
       - hapi.fhir.tester.home.server_address=http://localhost:8080/fhir
       - hapi.fhir.tester.home.name=Local HAPI FHIR
+      - hapi.fhir.subscription.resthook_enabled=true
+      - hapi.fhir.subscription.matching_strategy=DATABASE
+      - hapi.fhir.subscription.poll_interval=1000
     depends_on:
       fhir-db:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   app-db:
     image: mongo:8.0

@@ -34,7 +34,7 @@ const userSchema = new Schema<IUser>(
     },
     fhirPatientId: { type: String, default: null },
   },
-  { timestamps: true, _id: false },
+  { timestamps: true, collection: "user" },
 );
 
 export const User = model<IUser>("user", userSchema);
@@ -60,7 +60,7 @@ const sessionSchema = new Schema<ISession>(
     ipAddress: { type: String },
     userAgent: { type: String },
   },
-  { timestamps: true, _id: false },
+  { timestamps: true, collection: "session" },
 );
 
 // Indexes
@@ -100,7 +100,7 @@ const accountSchema = new Schema<IAccount>(
     idToken: { type: String, select: false },
     password: { type: String, select: false },
   },
-  { timestamps: true, _id: false },
+  { timestamps: true, collection: "account" },
 );
 
 // Indexes
@@ -126,7 +126,7 @@ const verificationSchema = new Schema<IVerification>(
     value: { type: String, required: true },
     expiresAt: { type: Date, required: true },
   },
-  { timestamps: true, _id: false },
+  { timestamps: true, collection: "verification" },
 );
 
 // Indexes

@@ -32,7 +32,7 @@ export const getFhirHeaders = (
 export const fhirBaseUrl = (): string => env.FHIR_BASE_URL.replace(/\/+$/, "");
 
 interface FhirFetchOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   body?: Record<string, unknown>;
 }
 
@@ -89,3 +89,7 @@ export const fhirGet = (url: string) => fhirFetch(url);
 /** POST a FHIR resource. */
 export const fhirPost = (url: string, body: Record<string, unknown>) =>
   fhirFetch(url, { method: "POST", body });
+
+/** PUT a FHIR resource (create or update). */
+export const fhirPut = (url: string, body: Record<string, unknown>) =>
+  fhirFetch(url, { method: "PUT", body });

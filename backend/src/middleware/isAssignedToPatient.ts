@@ -15,41 +15,67 @@ declare global {
   }
 }
 
+/** Options for the isAssignedToPatient middleware. */
+interface AssignmentMiddlewareOptions {
+  /** Route param name that holds the patient FHIR ID. Defaults to `"id"`. */
+  paramName?: string;
+}
+
 /**
  * Middleware factory: enforces patient assignment checks.
  *
  * Usage:
- *   // Any active assignment role
- *   router.get("/:id/vitals", requireAuth, requireRole("practitioner","admin"), isAssignedToPatient(), handler)
+ *   // Any active assignment role, param defaults to :id
+ *   isAssignedToPatient()
  *
  *   // Restrict to specific assignment roles
- *   router.post("/:id/vitals", requireAuth, requireRole("practitioner","admin"), isAssignedToPatient("primary","covering"), handler)
+ *   isAssignedToPatient("primary", "covering")
+ *
+ *   // Custom param name (e.g. for :patientFhirId)
+ *   isAssignedToPatient({ paramName: "patientFhirId" })
+ *
+ *   // Both roles and custom param
+ *   isAssignedToPatient("primary", "covering", { paramName: "patientFhirId" })
  *
  * Behaviour:
  *   - Admin users bypass all checks entirely and `req.assignment` is NOT populated.
  *     Downstream handlers must not assume `req.assignment` exists for admin requests.
- *   - Reads `req.params.id` as the patientFhirId.
+ *   - Reads the patient FHIR ID from `req.params[paramName]` (default: `"id"`).
  *   - Queries the Assignment collection for an active record for this user + patient.
  *   - If `assignmentRoles` are provided, also validates the assignment role is in the list.
  *   - On success, attaches the found assignment to `req.assignment`.
  *   - Throws 401 if user is not authenticated.
- *   - Throws 400 if the route has no :id param.
+ *   - Throws 400 if the route param is missing.
  *   - Throws 403 if no valid assignment is found.
  *
  * Assumes `requireAuth` and `requireRole` have already run.
  */
 export const isAssignedToPatient =
-  (...assignmentRoles: AssignmentRole[]) =>
+  (...args: (AssignmentRole | AssignmentMiddlewareOptions)[]) =>
   async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
+      // Separate roles from options object (last arg may be options)
+      let options: AssignmentMiddlewareOptions = {};
+      const assignmentRoles: AssignmentRole[] = [];
+
+      for (const arg of args) {
+        if (typeof arg === "string") {
+          assignmentRoles.push(arg);
+        } else {
+          options = arg;
+        }
+      }
+
+      const paramName = options.paramName ?? "id";
+
       // Admins bypass all assignment checks
       if (req.user?.role === "admin") {
         return next();
       }
 
-      const rawId = req.params.id;
+      const rawId = req.params[paramName];
       if (!rawId) {
-        throw new AppError("Missing patient id", 400);
+        throw new AppError(`Missing route param: ${paramName}`, 400);
       }
       const patientFhirId = String(rawId);
 
