@@ -18,6 +18,7 @@ import vitalsRoutes from "./routes/vitals.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import assignmentRoutes from "./routes/assignment.routes.js";
 import alertRoutes from "./routes/alert.routes.js";
+import { registerFhirSubscription } from "./services/subscription.service.js";
 
 const app = express();
 const port = env.PORT;
@@ -68,6 +69,7 @@ const startServer = async () => {
   await connectMongo();
   initAuth();
   await verifyFhirConnection();
+  await registerFhirSubscription();
 
   app.listen(port, () => {
     logger.info(`Server running at http://localhost:${port}`);
