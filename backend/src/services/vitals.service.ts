@@ -26,8 +26,7 @@ const buildObservation = (
     {
       coding: [
         {
-          system:
-            "http://terminology.hl7.org/CodeSystem/observation-category",
+          system: "http://terminology.hl7.org/CodeSystem/observation-category",
           code: "vital-signs",
           display: "Vital Signs",
         },
@@ -78,7 +77,11 @@ export const createPatientReportedVital = async (
   patientId: string,
   input: CreateVitalInput,
 ): Promise<VitalsDTO> => {
-  const observation = buildObservation(patientId, input, `Patient/${patientId}`);
+  const observation = buildObservation(
+    patientId,
+    input,
+    `Patient/${patientId}`,
+  );
   const created = await createVital(observation);
   return toVitalsDTO(created);
 };

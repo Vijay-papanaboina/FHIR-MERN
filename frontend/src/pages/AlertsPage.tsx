@@ -39,7 +39,9 @@ export function AlertsPage() {
   const patientIds = useMemo(
     () =>
       Array.from(
-        new Set((data?.items ?? []).map((item) => item.patientFhirId).filter(Boolean)),
+        new Set(
+          (data?.items ?? []).map((item) => item.patientFhirId).filter(Boolean),
+        ),
       ),
     [data?.items],
   );
@@ -151,7 +153,8 @@ export function AlertsPage() {
                     className={acknowledged ? "opacity-55" : undefined}
                   >
                     <TableCell className="font-medium">
-                      {patientNameById.get(alert.patientFhirId) ?? alert.patientFhirId}
+                      {patientNameById.get(alert.patientFhirId) ??
+                        alert.patientFhirId}
                     </TableCell>
                     <TableCell>{alert.type}</TableCell>
                     <TableCell>
@@ -159,7 +162,11 @@ export function AlertsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={alert.severity === "critical" ? "destructive" : "outline"}
+                        variant={
+                          alert.severity === "critical"
+                            ? "destructive"
+                            : "outline"
+                        }
                         className={
                           alert.severity === "warning"
                             ? "border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300"
@@ -176,7 +183,9 @@ export function AlertsPage() {
                         )}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatDateTime(alert.recordDate || alert.createdAt)}</TableCell>
+                    <TableCell>
+                      {formatDateTime(alert.recordDate || alert.createdAt)}
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         size="sm"

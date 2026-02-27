@@ -5,7 +5,10 @@ import { GENDER_VARIANT } from "@/lib/constants";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { usePatient } from "@/hooks/use-patient";
 import { useVitals } from "@/hooks/use-vitals";
-import { usePatientAssignments, usePractitioners } from "@/hooks/use-assignments";
+import {
+  usePatientAssignments,
+  usePractitioners,
+} from "@/hooks/use-assignments";
 import { useResolvedRole } from "@/hooks/use-resolved-role";
 import { VitalsChart } from "@/components/VitalsChart";
 import { RecordVitalDialog } from "@/components/RecordVitalDialog";
@@ -151,16 +154,18 @@ export function PatientDetailPage() {
                   !practitionersError &&
                   assignments &&
                   assignments.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {assignments.map((assignment) => (
-                      <Badge key={assignment._id} variant="outline">
-                        {practitionerById.get(assignment.assignedUserId) ??
-                          assignment.assignedUserId}
-                        {" · "}
-                        <span className="capitalize">{assignment.assignmentRole}</span>
-                      </Badge>
-                    ))}
-                  </div>
+                    <div className="flex flex-wrap gap-2">
+                      {assignments.map((assignment) => (
+                        <Badge key={assignment._id} variant="outline">
+                          {practitionerById.get(assignment.assignedUserId) ??
+                            assignment.assignedUserId}
+                          {" · "}
+                          <span className="capitalize">
+                            {assignment.assignmentRole}
+                          </span>
+                        </Badge>
+                      ))}
+                    </div>
                   )}
               </div>
             </CardContent>

@@ -43,5 +43,7 @@ export function fetchAlerts(page = 1, limit = 50): Promise<AlertListResponse> {
 export function acknowledgeAlert(alertId: string): Promise<AlertItem> {
   const trimmed = alertId.trim();
   if (!trimmed) return Promise.reject(new Error("Alert ID is required"));
-  return apiPost<AlertItem>(`/api/alerts/${encodeURIComponent(trimmed)}/acknowledge`);
+  return apiPost<AlertItem>(
+    `/api/alerts/${encodeURIComponent(trimmed)}/acknowledge`,
+  );
 }

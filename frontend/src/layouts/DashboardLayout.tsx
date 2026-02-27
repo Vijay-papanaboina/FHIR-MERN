@@ -49,7 +49,7 @@ const dashboardNavByRole: Partial<Record<AppRole, NavItem[]>> = {
 };
 
 function AppSidebar({ role }: { role: AppRole | null }) {
-  const navItems = role ? dashboardNavByRole[role] ?? [] : [];
+  const navItems = role ? (dashboardNavByRole[role] ?? []) : [];
 
   return (
     <Sidebar collapsible="icon">

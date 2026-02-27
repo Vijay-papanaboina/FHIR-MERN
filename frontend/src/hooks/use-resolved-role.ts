@@ -8,7 +8,8 @@ interface AuthMeUser {
 }
 
 export function useResolvedRole() {
-  const { data: session, isPending: isSessionPending } = authClient.useSession();
+  const { data: session, isPending: isSessionPending } =
+    authClient.useSession();
   const sessionRole = useMemo(
     () => normalizeRole(getSessionUserValue(session, "role")),
     [session],
@@ -55,8 +56,9 @@ export function useResolvedRole() {
     };
   }, [fallbackRole, session, sessionRole, sessionUserId]);
 
-  const role = sessionRole ?? (fallbackRole ?? null);
-  const isResolvingRole = !!session && !sessionRole && fallbackRole === undefined;
+  const role = sessionRole ?? fallbackRole ?? null;
+  const isResolvingRole =
+    !!session && !sessionRole && fallbackRole === undefined;
 
   return {
     session,

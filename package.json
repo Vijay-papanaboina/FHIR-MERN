@@ -1,25 +1,31 @@
 {
-    "name": "fhir-mern",
-    "version": "1.0.0",
-    "private": true,
-    "type": "module",
-    "workspaces": [
-        "frontend",
-        "backend",
-        "shared"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Vijay-papanaboina/FHIR-MERN.git"
-    },
-    "license": "ISC",
-    "scripts": {
-        "format": "prettier --write \"frontend/src/**/*.{ts,tsx}\" \"backend/src/**/*.ts\" \"shared/**/*.{ts,tsx,js}\" \"*.{json,md}\"",
-        "postman:build": "node postman/scripts/build-collection.mjs"
-    },
-    "devDependencies": {
-        "@types/node": "^25.3.0",
-        "prettier": "^3.8.1",
-        "typescript": "^5.9.3"
-    }
+  "name": "fhir-mern",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vijay-papanaboina/FHIR-MERN.git"
+  },
+  "license": "ISC",
+  "scripts": {
+    "format": "prettier --write \"frontend/src/**/*.{ts,tsx}\" \"backend/src/**/*.ts\" \"shared/**/*.{ts,tsx,js}\" \"*.{json,md}\"",
+    "postman:build": "node postman/scripts/build-collection.mjs",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md}": "prettier --write"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3"
+  }
 }

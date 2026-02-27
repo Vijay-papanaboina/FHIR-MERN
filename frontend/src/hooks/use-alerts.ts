@@ -32,7 +32,10 @@ export function useAcknowledgeAlert(currentUserId: string | null) {
                     ...updatedAlert,
                     acknowledgedBy: currentUserId
                       ? Array.from(
-                          new Set([...updatedAlert.acknowledgedBy, currentUserId]),
+                          new Set([
+                            ...updatedAlert.acknowledgedBy,
+                            currentUserId,
+                          ]),
                         )
                       : updatedAlert.acknowledgedBy,
                   }

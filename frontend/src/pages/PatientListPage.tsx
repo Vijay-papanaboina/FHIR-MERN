@@ -30,7 +30,10 @@ import {
 type SortOption = "name-asc" | "name-desc" | "dob-asc" | "dob-desc";
 type GenderFilter = "all" | "male" | "female" | "other" | "unknown";
 
-function sortPatients(patients: PatientDTO[], sortBy: SortOption): PatientDTO[] {
+function sortPatients(
+  patients: PatientDTO[],
+  sortBy: SortOption,
+): PatientDTO[] {
   const next = [...patients];
   if (sortBy === "name-asc") {
     return next.sort((a, b) => a.displayName.localeCompare(b.displayName));
@@ -71,7 +74,9 @@ export function PatientListPage() {
   const isError = isPractitioner
     ? assignedPatientsQuery.isError
     : adminPatientsQuery.isError;
-  const error = isPractitioner ? assignedPatientsQuery.error : adminPatientsQuery.error;
+  const error = isPractitioner
+    ? assignedPatientsQuery.error
+    : adminPatientsQuery.error;
   const refetch = isPractitioner
     ? assignedPatientsQuery.refetch
     : adminPatientsQuery.refetch;
