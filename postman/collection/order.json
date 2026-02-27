@@ -1,0 +1,30 @@
+[
+    {
+        "name": "Auth",
+        "file": "folders/auth.json"
+    },
+    {
+        "name": "Users",
+        "file": "folders/users.json"
+    },
+    {
+        "name": "Assignments",
+        "file": "folders/assignments.json"
+    },
+    {
+        "name": "Patients",
+        "file": "folders/patients.json"
+    },
+    {
+        "name": "Vitals",
+        "file": "folders/vitals.json"
+    },
+    {
+        "name": "Portal",
+        "file": "folders/portal.json"
+    },
+    {
+        "name": "Alerts",
+        "file": "folders/alerts.json"
+    }
+]

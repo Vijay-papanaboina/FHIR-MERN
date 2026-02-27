@@ -1,0 +1,26 @@
+[
+    {
+        "key": "host",
+        "value": "localhost:3000"
+    },
+    {
+        "key": "protocol",
+        "value": "http"
+    },
+    {
+        "key": "origin",
+        "value": "http://localhost:5173"
+    },
+    {
+        "key": "example_email",
+        "value": "user@example.com"
+    },
+    {
+        "key": "example_password",
+        "value": "Password123!"
+    },
+    {
+        "key": "example_name",
+        "value": "John Doe"
+    }
+]

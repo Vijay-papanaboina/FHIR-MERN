@@ -1,0 +1,65 @@
+{
+    "name": "Vitals",
+    "item": [
+        {
+            "name": "Get Vitals History",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/patients/:id/vitals",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "patients",
+                        ":id",
+                        "vitals"
+                    ],
+                    "variable": [
+                        {
+                            "key": "id",
+                            "value": "1001"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Log New Vital",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"code\": \"8867-4\",\n  \"display\": \"Heart rate\",\n  \"value\": 72,\n  \"unit\": \"bpm\",\n  \"unitCode\": \"/min\",\n  \"effectiveDateTime\": \"2026-02-26T17:35:00Z\"\n}"
+                },
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/patients/:id/vitals",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "patients",
+                        ":id",
+                        "vitals"
+                    ],
+                    "variable": [
+                        {
+                            "key": "id",
+                            "value": "1001"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
