@@ -14,3 +14,7 @@ export function fetchPatient(id: string): Promise<PatientDTO> {
   if (!trimmed) return Promise.reject(new Error("Patient ID is required"));
   return apiGet<PatientDTO>(`/api/patients/${encodeURIComponent(trimmed)}`);
 }
+
+export function fetchAssignedPatients(): Promise<PatientDTO[]> {
+  return apiGet<PatientDTO[]>("/api/patients/assigned");
+}

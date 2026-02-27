@@ -5,6 +5,8 @@ import { GENDER_VARIANT } from "@/lib/constants";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { usePatient } from "@/hooks/use-patient";
 import { useVitals } from "@/hooks/use-vitals";
+import { usePatientAssignments, usePractitioners } from "@/hooks/use-assignments";
+import { useResolvedRole } from "@/hooks/use-resolved-role";
 import { VitalsChart } from "@/components/VitalsChart";
 import { RecordVitalDialog } from "@/components/RecordVitalDialog";
 import { EmptyState, ErrorState } from "@/components/StateViews";
@@ -30,6 +32,8 @@ import {
 export function PatientDetailPage() {
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { role } = useResolvedRole();
+  const isAdmin = role === "admin";
   const {
     data: patient,
     isPending: patientLoading,
@@ -42,6 +46,20 @@ export function PatientDetailPage() {
     isError: vitalsError,
     refetch: refetchVitals,
   } = useVitals(id);
+  const {
+    data: assignments,
+    isPending: assignmentsLoading,
+    isError: assignmentsError,
+    refetch: refetchAssignments,
+  } = usePatientAssignments(id, isAdmin);
+  const {
+    data: practitioners,
+    isError: practitionersError,
+    refetch: refetchPractitioners,
+  } = usePractitioners(isAdmin);
+  const practitionerById = new Map(
+    (practitioners ?? []).map((p) => [p._id, p.name] as const),
+  );
 
   return (
     <div className="space-y-6">
@@ -104,6 +122,49 @@ export function PatientDetailPage() {
               </Badge>
             </div>
           </CardContent>
+
+          {isAdmin && (
+            <CardContent className="pt-0">
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Assigned To</p>
+                {assignmentsLoading && <Skeleton className="h-6 w-52" />}
+                {!assignmentsLoading &&
+                  (assignmentsError || practitionersError) && (
+                    <ErrorState
+                      message="Failed to load assignment details"
+                      onRetry={() => {
+                        void refetchAssignments();
+                        void refetchPractitioners();
+                      }}
+                    />
+                  )}
+                {!assignmentsLoading &&
+                  !assignmentsError &&
+                  !practitionersError &&
+                  (!assignments || assignments.length === 0) && (
+                    <p className="text-sm text-muted-foreground">
+                      No active practitioner assignments.
+                    </p>
+                  )}
+                {!assignmentsLoading &&
+                  !assignmentsError &&
+                  !practitionersError &&
+                  assignments &&
+                  assignments.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {assignments.map((assignment) => (
+                      <Badge key={assignment._id} variant="outline">
+                        {practitionerById.get(assignment.assignedUserId) ??
+                          assignment.assignedUserId}
+                        {" · "}
+                        <span className="capitalize">{assignment.assignmentRole}</span>
+                      </Badge>
+                    ))}
+                  </div>
+                  )}
+              </div>
+            </CardContent>
+          )}
         </Card>
       )}
 
