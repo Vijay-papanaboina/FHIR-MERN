@@ -10,3 +10,14 @@ export const linkPatientSchema = z.object({
 });
 
 export type LinkPatientInput = z.infer<typeof linkPatientSchema>;
+
+/**
+ * Zod schema for updating a user's system role.
+ */
+export const updateUserRoleSchema = z.object({
+  role: z.enum(["patient", "practitioner", "admin"], {
+    message: "role must be one of: patient, practitioner, admin",
+  }),
+});
+
+export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;

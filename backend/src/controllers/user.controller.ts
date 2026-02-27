@@ -4,10 +4,27 @@ import { User } from "../models/auth.model.js";
 import { getPatient } from "../services/patient.service.js";
 import { AppError } from "../utils/AppError.js";
 import { jsend } from "../utils/jsend.js";
-import { linkPatientSchema } from "../validators/user.validator.js";
+import {
+  linkPatientSchema,
+  updateUserRoleSchema,
+} from "../validators/user.validator.js";
 
 const userIdParamSchema = z.object({
   userId: z.string().min(1, "userId is required"),
+});
+
+const toSafeUser = (user: {
+  _id: string;
+  name: string;
+  email: string;
+  role: "patient" | "practitioner" | "admin";
+  fhirPatientId?: string | null;
+}) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  fhirPatientId: user.fhirPatientId ?? null,
 });
 
 /**
@@ -46,13 +63,37 @@ export const linkPatientHandler = async (req: Request, res: Response) => {
   user.fhirPatientId = bodyResult.data.fhirPatientId;
   await user.save();
 
-  res.json(
-    jsend.success({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      fhirPatientId: user.fhirPatientId,
-    }),
-  );
+  res.json(jsend.success(toSafeUser(user)));
+};
+
+/**
+ * PATCH /api/users/:userId/role
+ * Update a user's system role (admin only).
+ */
+export const updateUserRoleHandler = async (req: Request, res: Response) => {
+  const paramResult = userIdParamSchema.safeParse(req.params);
+  if (!paramResult.success) {
+    throw new AppError(
+      paramResult.error.issues[0]?.message ?? "Invalid userId",
+      400,
+    );
+  }
+
+  const bodyResult = updateUserRoleSchema.safeParse(req.body);
+  if (!bodyResult.success) {
+    throw new AppError(
+      bodyResult.error.issues[0]?.message ?? "Invalid request body",
+      400,
+    );
+  }
+
+  const user = await User.findById(paramResult.data.userId);
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  user.role = bodyResult.data.role;
+  await user.save();
+
+  res.json(jsend.success(toSafeUser(user)));
 };
