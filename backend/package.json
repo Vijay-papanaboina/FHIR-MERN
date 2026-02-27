@@ -13,7 +13,11 @@
     "build": "npm run clean && npm run -w @fhir-mern/shared build && tsc",
     "start": "node dist/index.js",
     "typecheck": "npm run -w @fhir-mern/shared build && tsc --noEmit",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:api": "vitest run tests/api",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:services": "npm run test:unit && npm run test:integration",
+    "test": "npm run test:services && npm run test:api"
   },
   "dependencies": {
     "@fhir-mern/shared": "1.0.0",
@@ -32,8 +36,11 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.3.0",
+    "@types/supertest": "^7.2.0",
     "@types/uuid": "^10.0.0",
+    "supertest": "^7.2.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "tsx": "^4.21.0"
+    "vitest": "^4.0.18"
   }
 }
