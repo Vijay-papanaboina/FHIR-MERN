@@ -19,6 +19,7 @@ import authRoutes from "./routes/auth.routes.js";
 import assignmentRoutes from "./routes/assignment.routes.js";
 import alertRoutes from "./routes/alert.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import portalRoutes from "./routes/portal.routes.js";
 import { registerFhirSubscription } from "./services/subscription.service.js";
 
 const app = express();
@@ -57,6 +58,7 @@ app.use("/api/patients/:id/vitals", vitalsRoutes);
 app.use("/api/assignments", assignmentRoutes);
 app.use("/api/alerts", alertRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/portal", portalRoutes);
 
 // ── 404 catch-all ───────────────────────────────────────────────
 app.all("/{*any}", (req, res, next) => {
