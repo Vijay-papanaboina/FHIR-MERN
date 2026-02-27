@@ -1,0 +1,75 @@
+{
+    "name": "Users",
+    "item": [
+        {
+            "name": "Update User Role (Admin)",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"role\": \"practitioner\"\n}"
+                },
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/users/:userId/role",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "users",
+                        ":userId",
+                        "role"
+                    ],
+                    "variable": [
+                        {
+                            "key": "userId",
+                            "value": "user-uuid"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Link Patient to User (Admin)",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"fhirPatientId\": \"1001\"\n}"
+                },
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/users/:userId/link-patient",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "users",
+                        ":userId",
+                        "link-patient"
+                    ],
+                    "variable": [
+                        {
+                            "key": "userId",
+                            "value": "user-uuid"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

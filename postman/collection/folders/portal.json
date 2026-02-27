@@ -1,0 +1,87 @@
+{
+    "name": "Portal",
+    "item": [
+        {
+            "name": "Get My Demographics",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/portal/me",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "portal",
+                        "me"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get My Care Team",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/portal/care-team",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "portal",
+                        "care-team"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get My Vitals",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/portal/vitals",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "portal",
+                        "vitals"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Submit My Vital",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"code\": \"8867-4\",\n  \"display\": \"Heart rate\",\n  \"value\": 82,\n  \"unit\": \"beats/minute\",\n  \"unitCode\": \"/min\"\n}"
+                },
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/portal/vitals",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "portal",
+                        "vitals"
+                    ]
+                }
+            }
+        }
+    ]
+}

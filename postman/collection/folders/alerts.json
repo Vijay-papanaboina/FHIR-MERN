@@ -1,0 +1,122 @@
+{
+    "name": "Alerts",
+    "item": [
+        {
+            "name": "SSE Stream",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/alerts/stream",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "alerts",
+                        "stream"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get My Alerts",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/alerts",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "alerts"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Patient Alerts",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/alerts/patient/:patientFhirId",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "alerts",
+                        "patient",
+                        ":patientFhirId"
+                    ],
+                    "variable": [
+                        {
+                            "key": "patientFhirId",
+                            "value": "1001"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Acknowledge Alert",
+            "request": {
+                "method": "POST",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/alerts/:id/acknowledge",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "alerts",
+                        ":id",
+                        "acknowledge"
+                    ],
+                    "variable": [
+                        {
+                            "key": "id",
+                            "value": "alert-uuid"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "FHIR Webhook (Internal)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "X-Webhook-Secret",
+                        "value": "{{webhookSecret}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"resourceType\": \"Observation\",\n  \"id\": \"1105\",\n  \"status\": \"final\",\n  \"code\": {\n    \"coding\": [\n      {\n        \"system\": \"http://loinc.org\",\n        \"code\": \"8867-4\"\n      }\n    ]\n  },\n  \"subject\": {\n    \"reference\": \"Patient/1001\"\n  },\n  \"effectiveDateTime\": \"2026-02-27T00:00:00.000Z\",\n  \"valueQuantity\": {\n    \"value\": 195,\n    \"unit\": \"bpm\"\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/alerts/webhook",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "alerts",
+                        "webhook"
+                    ]
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+{
+    "name": "FHIR-MERN API",
+    "description": "API collection for the current backend routes.\n\n### Environment Variables\n- `host`: backend host, e.g. `localhost:3000`\n- `protocol`: `http` or `https`\n- `origin`: frontend origin for Better Auth requests, e.g. `http://localhost:5173`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+}

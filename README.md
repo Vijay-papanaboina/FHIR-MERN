@@ -1,86 +1,101 @@
-# FHIR MERN Application
+# FHIR MERN
 
-A full-stack application for managing and viewing FHIR (Fast Healthcare Interoperability Resources) data. The project is structured as a monorepo containing a React frontend and an Express Node.js backend.
+Monorepo for a full-stack FHIR application with a React frontend, an Express backend, and a shared TypeScript package.
 
-## Architecture Structure
+## Workspaces
 
-- **[`frontend/`](./frontend/README.md)**: React 19 application built with Vite, Tailwind CSS v4, and Shadcn UI. Communicates with the backend API to display patient records and vitals.
-- **[`backend/`](./backend/README.md)**: Node.js Express server. Handles authentication using Better Auth, proxies and manages interactions with a HAPI FHIR server, and connects to MongoDB for local application data.
-- **`shared/`**: Shared TypeScript definitions (`@fhir-mern/shared`) used by both the frontend and backend to ensure type safety across the stack.
+- [`frontend/`](./frontend/README.md) - React + Vite client
+- [`backend/`](./backend/README.md) - Express API + Better Auth + MongoDB + FHIR integration
+- `shared/` - `@fhir-mern/shared` DTO/types package consumed by frontend and backend
 
-## Development Setup
+## Prerequisites
 
-### Prerequisites
+- Node.js 20+
+- npm 9+
+- Docker + Docker Compose
 
-- [Node.js](https://nodejs.org/) (v20+ recommended)
-- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (for the databases and FHIR server)
-- [Git](https://git-scm.com/)
+## Start Infrastructure
 
-### 1. Start Infrastructure Services
-
-The application requires a PostgreSQL database (for the HAPI FHIR server), the HAPI FHIR server itself, and a MongoDB instance (for application data).
-
-From the root directory, start the services using Docker Compose:
+From repo root:
 
 ```bash
 docker compose up -d
 ```
 
-Wait a moment for all services to become healthy. The HAPI FHIR server will be available at `http://localhost:8080/fhir`.
+Services expected for local development:
 
-### 2. Install Dependencies
+- HAPI FHIR at `http://localhost:8080/fhir`
+- MongoDB for backend app data
+- PostgreSQL for HAPI FHIR
 
-Install dependencies for all workspaces from the root directory:
+## Install
+
+From repo root:
 
 ```bash
 npm install
 ```
 
-### 3. Environment Configuration
+## Environment Setup
 
-Copy the environment variable templates and fill in any required values:
-
-**Backend:**
+### Backend
 
 ```bash
 cd backend
 cp .env.example .env
 ```
 
-Ensure the `.env` file connects to the local MongoDB (`mongodb://<username>:<password>@localhost:27017/app_db`) and your given FHIR server URL (e.g., `http://localhost:8080/fhir`).
-
-**Frontend:**
+### Frontend
 
 ```bash
 cd frontend
 cp .env.example .env
 ```
 
-Ensure the `.env` file contains the API variable pointing to your backend (e.g., `VITE_API_URL=http://localhost:3000`). If you update the `.env` file while the frontend development server is running, restart the server so the new `VITE_API_URL` is picked up.
+Set frontend API URL to backend, for example:
 
-### 4. Run the Application
+```bash
+VITE_API_URL=http://localhost:3000
+```
 
-You will need to run the frontend and backend development servers in separate terminal instances.
+## Run Locally
 
-**Terminal 1 (Backend):**
+Use separate terminals.
+
+### Backend
 
 ```bash
 cd backend
 npm run dev
 ```
 
-**Terminal 2 (Frontend):**
+### Frontend
 
 ```bash
 cd frontend
 npm run dev
+```
+
+## Backend Tests
+
+```bash
+cd backend
+npm run test:unit
+npm run test:integration
+npm run test:api
+npm test
 ```
 
 ## Formatting
 
-This monorepo uses Prettier for consistent code formatting.
+From repo root:
 
 ```bash
-# From the root directory
-npx prettier --write "frontend/src/**/*.{ts,tsx}" "backend/src/**/*.ts" "shared/**/*.{ts,tsx,js}" "*.{json,md}"
+npm run format
 ```
+
+## API Collection
+
+Postman collection is available at:
+
+- `postman/postman_collection.json`

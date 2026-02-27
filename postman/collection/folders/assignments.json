@@ -1,0 +1,128 @@
+{
+    "name": "Assignments",
+    "description": "Admin-only assignment management APIs for linking practitioners to patient FHIR IDs and managing active assignment records.",
+    "item": [
+        {
+            "name": "Create Assignment",
+            "description": "Create an active assignment for a practitioner.\n\nBody:\n- patientFhirId: FHIR Patient ID\n- assignedUserId: target practitioner user ID\n- assignmentRole: primary | covering | consulting\n\nTypical responses:\n- 201 on success\n- 403/404/409 on role/validation/duplicate conflicts",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"patientFhirId\": \"1001\",\n  \"assignedUserId\": \"practitioner-uuid\",\n  \"assignmentRole\": \"primary\"\n}"
+                },
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/assignments",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "assignments"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "List Assignments by Patient",
+            "description": "List active assignments for a patient using query param `patientFhirId`.\n\nTypical responses:\n- 200 with assignment array\n- 400 if patientFhirId query is missing",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/assignments?patientFhirId=1001",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "assignments"
+                    ],
+                    "query": [
+                        {
+                            "key": "patientFhirId",
+                            "value": "1001"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "List Assignments by User",
+            "description": "List active assignments for a practitioner by path variable `userId`.\n\nTypical responses:\n- 200 with assignment array\n- 400 if userId is invalid/missing",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/assignments/user/:userId",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "assignments",
+                        "user",
+                        ":userId"
+                    ],
+                    "variable": [
+                        {
+                            "key": "userId",
+                            "value": "practitioner-uuid"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "List Practitioners",
+            "description": "Return practitioner user summaries used for assignment creation UI/dropdowns.\n\nTypical response:\n- 200 with practitioner list",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/assignments/practitioners",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "assignments",
+                        "practitioners"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Deactivate Assignment",
+            "description": "Soft-deactivate an active assignment by path variable `id`.\n\nTypical responses:\n- 200 with updated assignment\n- 400 if already inactive\n- 404 if assignment not found",
+            "request": {
+                "method": "DELETE",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/assignments/:id",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "assignments",
+                        ":id"
+                    ],
+                    "variable": [
+                        {
+                            "key": "id",
+                            "value": "assignment-uuid"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

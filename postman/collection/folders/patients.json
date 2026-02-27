@@ -1,0 +1,74 @@
+{
+    "name": "Patients",
+    "description": "Patient resource endpoints. Access is role-gated by backend middleware (admin/practitioner depending on route).",
+    "item": [
+        {
+            "name": "Search Patients",
+            "description": "Admin route. Search FHIR patients by query param `name`.\n\nTypical responses:\n- 200 with PatientDTO array\n- 400 for missing/invalid name query",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/patients?name=John",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "patients"
+                    ],
+                    "query": [
+                        {
+                            "key": "name",
+                            "value": "John"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Assigned Patients",
+            "description": "Practitioner/admin route. Returns patients assigned to the authenticated user.\n\nTypical responses:\n- 200 with PatientDTO array\n- 401/403 if unauthorized",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/patients/assigned",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "patients",
+                        "assigned"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Patient Details",
+            "description": "Practitioner/admin route. Fetch one patient by path variable `id` (FHIR Patient ID).\n\nPath param:\n- `id`: patient FHIR ID\n\nTypical responses:\n- 200 with PatientDTO\n- 400 invalid id format\n- 403 if assignment guard fails\n- 404 if patient not found",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{protocol}}://{{host}}/api/patients/:id",
+                    "protocol": "{{protocol}}",
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "api",
+                        "patients",
+                        ":id"
+                    ],
+                    "variable": [
+                        {
+                            "key": "id",
+                            "value": "1001"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
