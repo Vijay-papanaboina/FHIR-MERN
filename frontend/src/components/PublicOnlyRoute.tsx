@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router";
-import { authClient } from "@/lib/auth-client";
+import { useResolvedRole } from "@/hooks/use-resolved-role";
+import { getRoleHomePath, isPathAllowedForRole } from "@/lib/roles";
 
 /** Only allow paths that start with a single "/" and have no scheme */
 function isValidReturnTo(path: string): boolean {
@@ -15,7 +16,7 @@ function isValidReturnTo(path: string): boolean {
  * Honors ?returnTo= param if present and valid.
  */
 export function PublicOnlyRoute({ children }: { children: ReactNode }) {
-  const { data: session, isPending } = authClient.useSession();
+  const { session, role, isPending } = useResolvedRole();
   const location = useLocation();
 
   if (isPending) {
@@ -29,10 +30,16 @@ export function PublicOnlyRoute({ children }: { children: ReactNode }) {
   if (session) {
     const params = new URLSearchParams(location.search);
     const returnTo = params.get("returnTo");
-    const target =
+    const decodedReturnTo =
       returnTo && isValidReturnTo(decodeURIComponent(returnTo))
         ? decodeURIComponent(returnTo)
-        : "/dashboard/patients";
+        : null;
+    const target =
+      decodedReturnTo && role && isPathAllowedForRole(role, decodedReturnTo)
+        ? decodedReturnTo
+        : role
+          ? getRoleHomePath(role)
+          : "/pending-role";
     return <Navigate to={target} replace />;
   }
 

@@ -133,3 +133,38 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
 
   return parseJSend<T>(res);
 }
+
+/**
+ * Make a PATCH request to the backend API.
+ */
+export async function apiPatch<T>(path: string, body?: unknown): Promise<T> {
+  const payload = body !== undefined ? JSON.stringify(body) : undefined;
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (payload !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const res = await safeFetch(`${API_BASE}${path}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers,
+    body: payload,
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
+
+  return parseJSend<T>(res);
+}
+
+/**
+ * Make a DELETE request to the backend API.
+ */
+export async function apiDelete<T>(path: string): Promise<T> {
+  const res = await safeFetch(`${API_BASE}${path}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
+
+  return parseJSend<T>(res);
+}

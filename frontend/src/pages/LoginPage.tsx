@@ -27,11 +27,28 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
+function isSafeReturnPath(path: string): boolean {
+  const value = path.trim();
+  return (
+    value.startsWith("/") && !value.startsWith("//") && !value.includes("://")
+  );
+}
+
+function sanitizeReturnTo(rawValue: string | null): string {
+  if (!rawValue) return "/";
+  try {
+    const decoded = decodeURIComponent(rawValue).trim();
+    return isSafeReturnPath(decoded) ? decoded : "/";
+  } catch {
+    return "/";
+  }
+}
+
 export function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const returnTo = searchParams.get("returnTo") || "/dashboard/patients";
+  const returnTo = sanitizeReturnTo(searchParams.get("returnTo"));
 
   const {
     register,

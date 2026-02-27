@@ -33,7 +33,7 @@ interface GoogleSignInButtonProps {
 
 export function GoogleSignInButton({
   disabled = false,
-  callbackURL = "/dashboard/patients",
+  callbackURL = "/",
 }: GoogleSignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
