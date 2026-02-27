@@ -31,12 +31,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@fhir-mern/shared/*": [
-        "../shared/types/*"
-      ],
-      "@fhir-mern/shared": [
-        "../shared/types/index.ts"
       ]
     }
   },

@@ -5,15 +5,18 @@
   "license": "ISC",
   "author": "",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "predev": "npm run -w @fhir-mern/shared build",
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/backend/src/index.js",
-    "typecheck": "tsc --noEmit",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && npm run -w @fhir-mern/shared build && tsc",
+    "start": "node dist/index.js",
+    "typecheck": "npm run -w @fhir-mern/shared build && tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@fhir-mern/shared": "1.0.0",
     "better-auth": "^1.4.19",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -30,6 +33,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.3.0",
     "@types/uuid": "^10.0.0",
+    "typescript": "^5.9.3",
     "tsx": "^4.21.0"
   }
 }

@@ -2,7 +2,7 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    "rootDir": "..",
+    "rootDir": "./src",
     "outDir": "./dist",
     // Environment Settings
     "module": "nodenext",
@@ -22,19 +22,9 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@fhir-mern/shared/*": [
-        "../shared/types/*"
-      ],
-      "@fhir-mern/shared": [
-        "../shared/types/index.ts"
-      ]
-    }
+    "skipLibCheck": true
   },
   "include": [
-    "src",
-    "../shared/types"
+    "src"
   ]
 }
