@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicOnlyRoute } from "@/components/PublicOnlyRoute";
 import { DashboardRoleGuard } from "@/components/DashboardRoleGuard";
+import { PortalGuard } from "@/components/PortalGuard";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import { PortalLayout } from "@/layouts/PortalLayout";
@@ -92,7 +93,9 @@ export const router = createBrowserRouter([
     path: "portal",
     element: (
       <ProtectedRoute allowedRoles={["patient"]}>
-        <PortalLayout />
+        <PortalGuard>
+          <PortalLayout />
+        </PortalGuard>
       </ProtectedRoute>
     ),
     children: [

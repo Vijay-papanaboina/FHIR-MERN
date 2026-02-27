@@ -29,7 +29,7 @@ export function isPathAllowedForRole(role: AppRole, path: string): boolean {
 
 export function getSessionUserValue(
   session: unknown,
-  key: "id" | "role",
+  key: "id" | "role" | "name",
 ): unknown {
   if (!session || typeof session !== "object") return undefined;
   const user = (session as { user?: unknown }).user;
