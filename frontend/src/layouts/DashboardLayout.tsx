@@ -2,7 +2,9 @@ import { NavLink, Outlet } from "react-router";
 import { Users, Activity, Bell, BriefcaseMedical, UserCog } from "lucide-react";
 
 import { ModeToggle } from "@/components/mode-toggle";
+import { AlertPanel } from "@/components/AlertPanel";
 import { SidebarUserMenu } from "@/components/SidebarUserMenu";
+import { useAlertsSse } from "@/hooks/use-alerts-sse";
 import { useResolvedRole } from "@/hooks/use-resolved-role";
 import type { AppRole } from "@/lib/roles";
 import {
@@ -110,6 +112,7 @@ function AppSidebar({ role }: { role: AppRole | null }) {
 
 export function DashboardLayout() {
   const { role } = useResolvedRole();
+  useAlertsSse();
 
   return (
     <TooltipProvider>
@@ -120,6 +123,7 @@ export function DashboardLayout() {
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4!" />
             <div className="flex-1" />
+            <AlertPanel />
             <ModeToggle />
           </header>
           <main className="flex-1 overflow-auto p-4 md:p-6">

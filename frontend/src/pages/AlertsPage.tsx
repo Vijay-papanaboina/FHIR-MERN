@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { Bell, AlertTriangle } from "lucide-react";
 
@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAlertsStore } from "@/store/alerts.store";
 
 const PAGE_LIMIT = 50;
 
@@ -35,15 +36,25 @@ export function AlertsPage() {
 
   const { data, isPending, isError, error, refetch } = useAlerts(1, PAGE_LIMIT);
   const acknowledgeMutation = useAcknowledgeAlert(currentUserId);
+  const alertsFromStore = useAlertsStore((state) => state.alerts);
+  const setAlerts = useAlertsStore((state) => state.setAlerts);
+
+  useEffect(() => {
+    if (data?.items) {
+      setAlerts(data.items);
+    }
+  }, [data?.items, setAlerts]);
 
   const patientIds = useMemo(
     () =>
       Array.from(
         new Set(
-          (data?.items ?? []).map((item) => item.patientFhirId).filter(Boolean),
+          (alertsFromStore.length > 0 ? alertsFromStore : (data?.items ?? []))
+            .map((item) => item.patientFhirId)
+            .filter(Boolean),
         ),
       ),
-    [data?.items],
+    [alertsFromStore, data?.items],
   );
 
   const patientQueries = useQueries({
@@ -64,7 +75,8 @@ export function AlertsPage() {
     return map;
   }, [patientIds, patientQueries]);
 
-  const items = data?.items ?? [];
+  const items =
+    alertsFromStore.length > 0 ? alertsFromStore : (data?.items ?? []);
 
   return (
     <div className="space-y-6">

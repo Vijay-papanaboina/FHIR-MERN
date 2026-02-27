@@ -5,11 +5,13 @@ import {
   type AlertItem,
   type AlertListResponse,
 } from "@/lib/alert.api";
+import { useAlertsStore } from "@/store/alerts.store";
 
-export function useAlerts(page = 1, limit = 50) {
+export function useAlerts(page = 1, limit = 50, enabled = true) {
   return useQuery({
     queryKey: ["alerts", page, limit],
     queryFn: () => fetchAlerts(page, limit),
+    enabled,
     staleTime: 15_000,
   });
 }
@@ -20,6 +22,7 @@ export function useAcknowledgeAlert(currentUserId: string | null) {
   return useMutation({
     mutationFn: (alertId: string) => acknowledgeAlert(alertId),
     onSuccess: (updatedAlert) => {
+      useAlertsStore.getState().mergeAlerts([updatedAlert]);
       queryClient.setQueriesData<AlertListResponse>(
         { queryKey: ["alerts"] },
         (existing) => {
