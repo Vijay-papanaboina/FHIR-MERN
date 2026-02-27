@@ -1,9 +1,8 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { User } from "../models/auth.model.js";
-import { getPatient } from "../services/patient.service.js";
 import { AppError } from "../utils/AppError.js";
 import { jsend } from "../utils/jsend.js";
+import { changeUserRole, linkPatientToUser } from "../services/user.service.js";
 import {
   linkPatientSchema,
   updateUserRoleSchema,
@@ -11,20 +10,6 @@ import {
 
 const userIdParamSchema = z.object({
   userId: z.string().min(1, "userId is required"),
-});
-
-const toSafeUser = (user: {
-  _id: string;
-  name: string;
-  email: string;
-  role: "patient" | "practitioner" | "admin";
-  fhirPatientId?: string | null;
-}) => ({
-  _id: user._id,
-  name: user.name,
-  email: user.email,
-  role: user.role,
-  fhirPatientId: user.fhirPatientId ?? null,
 });
 
 /**
@@ -48,22 +33,11 @@ export const linkPatientHandler = async (req: Request, res: Response) => {
     );
   }
 
-  const user = await User.findById(paramResult.data.userId);
-  if (!user) {
-    throw new AppError("User not found", 404);
-  }
-
-  if (user.role !== "patient") {
-    throw new AppError("Target user must have patient role", 403);
-  }
-
-  // Verify patient exists in FHIR before linking.
-  await getPatient(bodyResult.data.fhirPatientId);
-
-  user.fhirPatientId = bodyResult.data.fhirPatientId;
-  await user.save();
-
-  res.json(jsend.success(toSafeUser(user)));
+  const user = await linkPatientToUser(
+    paramResult.data.userId,
+    bodyResult.data.fhirPatientId,
+  );
+  res.json(jsend.success(user));
 };
 
 /**
@@ -87,13 +61,10 @@ export const updateUserRoleHandler = async (req: Request, res: Response) => {
     );
   }
 
-  const user = await User.findById(paramResult.data.userId);
-  if (!user) {
-    throw new AppError("User not found", 404);
-  }
-
-  user.role = bodyResult.data.role;
-  await user.save();
-
-  res.json(jsend.success(toSafeUser(user)));
+  const user = await changeUserRole(
+    paramResult.data.userId,
+    bodyResult.data.role,
+    req.user?.id,
+  );
+  res.json(jsend.success(user));
 };

@@ -1,20 +1,13 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { User } from "../models/auth.model.js";
-import { getAssignmentsByPatient } from "../repositories/assignment.repository.js";
-import { getPatient } from "../services/patient.service.js";
 import {
-  createPatientReportedVital,
-  getPatientVitals,
-} from "../services/vitals.service.js";
+  getPortalCareTeam,
+  getPortalDemographics,
+  getPortalVitals,
+  submitPortalVital,
+} from "../services/portal.service.js";
 import { AppError } from "../utils/AppError.js";
 import { jsend } from "../utils/jsend.js";
-
-interface CareTeamMemberDTO {
-  name: string;
-  image?: string;
-  assignmentRole: "primary" | "covering" | "consulting";
-}
 
 const createVitalSchema = z.object({
   code: z.string().min(1, "LOINC code is required"),
@@ -43,7 +36,7 @@ export const getMyDemographics = async (req: Request, res: Response) => {
     throw new AppError("Account not yet linked to a patient record", 403);
   }
 
-  const patient = await getPatient(patientId);
+  const patient = await getPortalDemographics(patientId);
   res.json(jsend.success(patient));
 };
 
@@ -57,35 +50,7 @@ export const getMyCareTeam = async (req: Request, res: Response) => {
     throw new AppError("Account not yet linked to a patient record", 403);
   }
 
-  const assignments = await getAssignmentsByPatient(patientId, true);
-  const practitionerIds = [...new Set(assignments.map((a) => a.assignedUserId))];
-  const practitioners = await User.find(
-    { _id: { $in: practitionerIds } },
-    { name: 1, image: 1, role: 1 },
-  ).lean();
-
-  const practitionersById = new Map(
-    practitioners.map((p) => [String(p._id), p] as const),
-  );
-
-  const members = assignments
-    .map((assignment) => {
-      const practitioner = practitionersById.get(assignment.assignedUserId);
-      if (!practitioner || practitioner.role !== "practitioner") {
-        return null;
-      }
-
-      const member: CareTeamMemberDTO = {
-        name: practitioner.name,
-        assignmentRole: assignment.assignmentRole,
-      };
-      if (typeof practitioner.image === "string") {
-        member.image = practitioner.image;
-      }
-      return member;
-    })
-    .filter((m): m is CareTeamMemberDTO => !!m);
-
+  const members = await getPortalCareTeam(patientId);
   res.json(jsend.success(members));
 };
 
@@ -99,7 +64,7 @@ export const getMyVitals = async (req: Request, res: Response) => {
     throw new AppError("Account not yet linked to a patient record", 403);
   }
 
-  const vitals = await getPatientVitals(patientId);
+  const vitals = await getPortalVitals(patientId);
   res.json(jsend.success(vitals));
 };
 
@@ -121,6 +86,6 @@ export const submitMyVital = async (req: Request, res: Response) => {
     );
   }
 
-  const vital = await createPatientReportedVital(patientId, bodyResult.data);
+  const vital = await submitPortalVital(patientId, bodyResult.data);
   res.status(201).json(jsend.success(vital));
 };
