@@ -1,6 +1,7 @@
 import type { UserRole } from "../repositories/user.repository.js";
 import {
   findUserById,
+  listUsers,
   updateUserFieldsById,
   updateUserFhirPatientIdById,
 } from "../repositories/user.repository.js";
@@ -14,6 +15,13 @@ export interface SafeUserDTO {
   email: string;
   role: UserRole;
   fhirPatientId: string | null;
+}
+
+export interface ListUsersDTO {
+  items: SafeUserDTO[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 const toSafeUser = (user: {
@@ -93,4 +101,18 @@ export const changeUserRole = async (
   });
 
   return toSafeUser(updated);
+};
+
+export const listSafeUsers = async (options: {
+  q?: string;
+  page: number;
+  limit: number;
+}): Promise<ListUsersDTO> => {
+  const result = await listUsers(options);
+  return {
+    items: result.items.map(toSafeUser),
+    total: result.total,
+    page: options.page,
+    limit: options.limit,
+  };
 };

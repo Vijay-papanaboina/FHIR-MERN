@@ -33,7 +33,9 @@ describe("Assignment routes", () => {
 
   afterAll(async () => {
     await Assignment.deleteMany({
-      assignedUserId: { $in: [admin.userId, practitioner.userId, patient.userId] },
+      assignedUserId: {
+        $in: [admin.userId, practitioner.userId, patient.userId],
+      },
     });
     await cleanupUsersByEmail(createdEmails);
     await mongoose.disconnect();
@@ -79,8 +81,13 @@ describe("Assignment routes", () => {
     const assignmentId = createRes.body?.data?._id as string;
     expect(assignmentId).toBeTruthy();
 
-    const listMissingFilter = await admin.agent.get("/api/assignments");
-    expect(listMissingFilter.status).toBe(400);
+    const listAll = await admin.agent.get("/api/assignments");
+    expect(listAll.status).toBe(200);
+    expect(Array.isArray(listAll.body?.data)).toBe(true);
+    const foundInAllList = listAll.body.data.find(
+      (a: { _id: string }) => a._id === assignmentId,
+    );
+    expect(foundInAllList).toBeDefined();
 
     const listByPatient = await admin.agent.get(
       `/api/assignments?patientFhirId=${encodeURIComponent(patientFhirId)}`,
@@ -99,18 +106,26 @@ describe("Assignment routes", () => {
     );
     expect(foundInUserList).toBeDefined();
 
-    const practitioners = await admin.agent.get("/api/assignments/practitioners");
+    const practitioners = await admin.agent.get(
+      "/api/assignments/practitioners",
+    );
     expect(practitioners.status).toBe(200);
     expect(Array.isArray(practitioners.body?.data)).toBe(true);
     expect(
-      practitioners.body.data.some((p: { _id: string }) => p._id === practitioner.userId),
+      practitioners.body.data.some(
+        (p: { _id: string }) => p._id === practitioner.userId,
+      ),
     ).toBe(true);
 
-    const deactivate = await admin.agent.delete(`/api/assignments/${assignmentId}`);
+    const deactivate = await admin.agent.delete(
+      `/api/assignments/${assignmentId}`,
+    );
     expect(deactivate.status).toBe(200);
     expect(deactivate.body?.data?.active).toBe(false);
 
-    const deactivateAgain = await admin.agent.delete(`/api/assignments/${assignmentId}`);
+    const deactivateAgain = await admin.agent.delete(
+      `/api/assignments/${assignmentId}`,
+    );
     expect(deactivateAgain.status).toBe(400);
   });
 });

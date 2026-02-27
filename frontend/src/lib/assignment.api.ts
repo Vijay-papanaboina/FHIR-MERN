@@ -1,4 +1,4 @@
-import { apiGet } from "@/lib/api";
+import { apiDelete, apiGet, apiPost } from "@/lib/api";
 
 export interface AssignmentDTO {
   _id: string;
@@ -9,6 +9,12 @@ export interface AssignmentDTO {
   active: boolean;
   assignedAt: string;
   deactivatedAt?: string | null;
+}
+
+export interface CreateAssignmentInput {
+  patientFhirId: string;
+  assignedUserId: string;
+  assignmentRole: "primary" | "covering" | "consulting";
 }
 
 export interface PractitionerSummaryDTO {
@@ -28,6 +34,26 @@ export function fetchAssignmentsByPatient(
   );
 }
 
+export function fetchAssignments(): Promise<AssignmentDTO[]> {
+  return apiGet<AssignmentDTO[]>("/api/assignments");
+}
+
 export function fetchPractitioners(): Promise<PractitionerSummaryDTO[]> {
   return apiGet<PractitionerSummaryDTO[]>("/api/assignments/practitioners");
+}
+
+export function createAssignment(
+  input: CreateAssignmentInput,
+): Promise<AssignmentDTO> {
+  return apiPost<AssignmentDTO>("/api/assignments", input);
+}
+
+export function deactivateAssignment(
+  assignmentId: string,
+): Promise<AssignmentDTO> {
+  const trimmed = assignmentId.trim();
+  if (!trimmed) return Promise.reject(new Error("Assignment ID is required"));
+  return apiDelete<AssignmentDTO>(
+    `/api/assignments/${encodeURIComponent(trimmed)}`,
+  );
 }

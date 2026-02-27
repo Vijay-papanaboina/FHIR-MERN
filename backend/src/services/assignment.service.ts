@@ -3,6 +3,7 @@ import { User } from "../models/auth.model.js";
 import {
   createAssignment,
   deactivateAssignment,
+  getAllAssignments,
   getAssignmentsByPatient,
   getAssignmentsByUser,
   getAssignmentById,
@@ -96,6 +97,15 @@ export const getUserAssignments = (
   activeOnly = true,
 ): Promise<IAssignment[]> => {
   return getAssignmentsByUser(userId, activeOnly);
+};
+
+/**
+ * Get all assignments in the system (active only by default).
+ */
+export const getAllSystemAssignments = (
+  activeOnly = true,
+): Promise<IAssignment[]> => {
+  return getAllAssignments(activeOnly);
 };
 
 /**

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  listUsersHandler,
   linkPatientHandler,
   updateUserRoleHandler,
 } from "../controllers/user.controller.js";
@@ -11,6 +12,7 @@ const router = Router();
 // All user management routes here are admin-only.
 router.use(requireAuth, requireRole("admin"));
 
+router.get("/", listUsersHandler);
 router.patch("/:userId/link-patient", linkPatientHandler);
 router.patch("/:userId/role", updateUserRoleHandler);
 

@@ -81,6 +81,18 @@ export const getAssignmentsByUser = (
 };
 
 /**
+ * Find all assignments across the system.
+ * Pass `activeOnly: true` to filter to active records only.
+ */
+export const getAllAssignments = (
+  activeOnly = true,
+): Promise<IAssignment[]> => {
+  return Assignment.find(activeOnly ? { active: true } : {}).sort({
+    assignedAt: -1,
+  });
+};
+
+/**
  * Check for an existing ACTIVE assignment for a specific user + patient combination.
  * Used by:
  *   - `isAssignedToPatient` middleware (access control)

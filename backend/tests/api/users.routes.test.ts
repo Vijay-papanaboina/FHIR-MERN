@@ -45,6 +45,38 @@ describe("User routes", () => {
     expect(res.status).toBe(403);
   });
 
+  it("blocks non-admin from listing users", async () => {
+    const res = await normal.agent.get("/api/users");
+    expect(res.status).toBe(403);
+  });
+
+  it("lists users for admin with pagination", async () => {
+    const res = await admin.agent.get("/api/users?page=1&limit=25");
+    expect(res.status).toBe(200);
+    expect(res.body?.status).toBe("success");
+    expect(Array.isArray(res.body?.data?.items)).toBe(true);
+    expect(res.body?.data?.page).toBe(1);
+    expect(res.body?.data?.limit).toBe(25);
+    expect(typeof res.body?.data?.total).toBe("number");
+    expect(
+      res.body.data.items.some((u: { _id: string }) => u._id === adminUserId),
+    ).toBe(true);
+  });
+
+  it("applies q search on admin users list", async () => {
+    const token = normal.email.split("@")[0];
+    const res = await admin.agent.get(
+      `/api/users?q=${encodeURIComponent(token)}`,
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body?.status).toBe("success");
+    expect(Array.isArray(res.body?.data?.items)).toBe(true);
+    expect(
+      res.body.data.items.some((u: { _id: string }) => u._id === normalUserId),
+    ).toBe(true);
+  });
+
   it("allows admin role update and returns safe payload", async () => {
     const res = await admin.agent
       .patch(`/api/users/${normalUserId}/role`)
