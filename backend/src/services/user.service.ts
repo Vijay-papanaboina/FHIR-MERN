@@ -1,5 +1,6 @@
 import type { UserRole } from "../repositories/user.repository.js";
 import {
+  findUserByFhirPatientId,
   findUserById,
   listUsers,
   updateUserFieldsById,
@@ -57,6 +58,16 @@ export const linkPatientToUser = async (
 
   if (user.role !== "patient") {
     throw new AppError("Target user must have patient role", 403);
+  }
+
+  const existingLinkedUser = await findUserByFhirPatientId(
+    normalizedFhirPatientId,
+  );
+  if (existingLinkedUser && String(existingLinkedUser._id) !== String(userId)) {
+    throw new AppError(
+      `FHIR Patient ID ${normalizedFhirPatientId} is already linked to another user`,
+      409,
+    );
   }
 
   // Verify patient exists in FHIR before linking.

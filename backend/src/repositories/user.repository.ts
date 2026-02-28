@@ -12,6 +12,9 @@ export interface PractitionerLookup {
 
 export const findUserById = (userId: string) => User.findById(userId);
 
+export const findUserByFhirPatientId = (fhirPatientId: string) =>
+  User.findOne({ fhirPatientId });
+
 export const updateUserRoleById = (userId: string, role: UserRole) =>
   User.findByIdAndUpdate(userId, { role }, { new: true });
 

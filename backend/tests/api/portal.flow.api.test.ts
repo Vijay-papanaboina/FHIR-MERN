@@ -4,13 +4,15 @@ import { initAuth } from "../../src/config/auth.js";
 import { connectMongo } from "../../src/config/db.js";
 import { createApp } from "../../src/app.js";
 import { Assignment } from "../../src/models/assignment.model.js";
+import { User } from "../../src/models/auth.model.js";
 import {
   cleanupUsersByEmail,
   createIdentity,
   type TestIdentity,
 } from "./test-helpers.js";
 
-const TEST_FHIR_BASE_URL = process.env["FHIR_BASE_URL"] ?? "http://localhost:8080/fhir";
+const TEST_FHIR_BASE_URL =
+  process.env["FHIR_BASE_URL"] ?? "http://localhost:8080/fhir";
 const FETCH_TIMEOUT_MS = 8000;
 
 interface CareTeamMember {
@@ -21,17 +23,39 @@ interface CareTeamMember {
   _id?: string;
 }
 
-const getAnyFhirPatientId = async (): Promise<string> => {
+const getUnlinkedFhirPatientId = async (): Promise<string> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  const response = await fetch(`${TEST_FHIR_BASE_URL}/Patient?_count=1`, {
+  const response = await fetch(`${TEST_FHIR_BASE_URL}/Patient?_count=20`, {
     signal: controller.signal,
   }).finally(() => clearTimeout(timeout));
-  expect(response.ok, "FHIR server unavailable or Patient query failed").toBe(true);
+  expect(response.ok, "FHIR server unavailable or Patient query failed").toBe(
+    true,
+  );
   const data = await response.json();
-  const id = data?.entry?.[0]?.resource?.id;
-  expect(id, "No FHIR Patient found. Seed FHIR first.").toBeTruthy();
-  return id as string;
+  const ids: string[] = (data?.entry ?? [])
+    .map((entry: { resource?: { id?: string } }) => entry.resource?.id)
+    .filter((id: string | undefined): id is string => Boolean(id));
+  expect(
+    ids.length,
+    "No FHIR Patients found. Seed FHIR first.",
+  ).toBeGreaterThan(0);
+
+  const linkedUsers = await User.find(
+    { fhirPatientId: { $in: ids } },
+    { fhirPatientId: 1 },
+  ).lean();
+  const linkedIdSet = new Set(
+    linkedUsers
+      .map((u) => u.fhirPatientId)
+      .filter((id): id is string => Boolean(id)),
+  );
+  const unlinked = ids.find((id) => !linkedIdSet.has(id));
+  expect(
+    unlinked,
+    "No unlinked FHIR patient id available for portal flow test",
+  ).toBeTruthy();
+  return unlinked as string;
 };
 
 const runEmails: string[] = [];
@@ -62,7 +86,7 @@ afterAll(async () => {
 
 describe("Portal API flow", () => {
   it("covers user/auth routes + portal flow (excluding SSE)", async () => {
-    const fhirPatientId = await getAnyFhirPatientId();
+    const fhirPatientId = await getUnlinkedFhirPatientId();
 
     // Hit auth/me route for all identities.
     const adminMe = await admin.agent.get("/api/auth/me");
@@ -150,7 +174,10 @@ describe("Portal API flow", () => {
     expect(observationId).toBeTruthy();
 
     const obsController = new AbortController();
-    const obsTimeout = setTimeout(() => obsController.abort(), FETCH_TIMEOUT_MS);
+    const obsTimeout = setTimeout(
+      () => obsController.abort(),
+      FETCH_TIMEOUT_MS,
+    );
     const hapiObservationResponse = await fetch(
       `${TEST_FHIR_BASE_URL}/Observation/${observationId}`,
       { signal: obsController.signal },
@@ -166,6 +193,5 @@ describe("Portal API flow", () => {
     );
     expect(practitionerVitals.status).toBe(200);
     expect(practitionerVitals.body?.status).toBe("success");
-
   });
 });

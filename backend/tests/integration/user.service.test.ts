@@ -102,6 +102,43 @@ describe("user service", () => {
     expect(out.items[0]).toHaveProperty("fhirPatientId");
   });
 
+  it("linkPatientToUser rejects duplicate fhirPatientId across users", async () => {
+    expect.assertions(3);
+    const now = Date.now();
+    const linkedUserId = randomUUID();
+    const targetUserId = randomUUID();
+
+    await User.create([
+      {
+        _id: linkedUserId,
+        name: "Already Linked Patient",
+        email: `service.link.linked.${now}@example.com`,
+        emailVerified: true,
+        role: "patient",
+        fhirPatientId: "dup-patient-1001",
+      },
+      {
+        _id: targetUserId,
+        name: "Target Patient",
+        email: `service.link.target.${now}@example.com`,
+        emailVerified: true,
+        role: "patient",
+        fhirPatientId: null,
+      },
+    ]);
+
+    let error: unknown;
+    try {
+      await linkPatientToUser(targetUserId, "dup-patient-1001");
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).toBeInstanceOf(AppError);
+    expect((error as AppError).statusCode).toBe(409);
+    expect((error as AppError).message).toMatch(/already linked/i);
+  });
+
   it("listSafeUsers treats regex metacharacters in q as plain text", async () => {
     const now = Date.now();
     const literalName = `Service Regex A.*B ${now}`;

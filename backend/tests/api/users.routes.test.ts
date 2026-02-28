@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { initAuth } from "../../src/config/auth.js";
 import { connectMongo } from "../../src/config/db.js";
+import { User } from "../../src/models/auth.model.js";
 import { createApp } from "../../src/app.js";
 import {
   cleanupUsersByEmail,
@@ -16,8 +17,10 @@ describe("User routes", () => {
 
   let adminUserId = "";
   let normalUserId = "";
+  let linkedPatientUserId = "";
   let admin!: TestIdentity;
   let normal!: TestIdentity;
+  let linkedPatient!: TestIdentity;
 
   beforeAll(async () => {
     await connectMongo();
@@ -26,10 +29,17 @@ describe("User routes", () => {
 
     admin = await createIdentity(app, "users.admin", "admin");
     normal = await createIdentity(app, "users.normal", "patient");
-    createdEmails.push(admin.email, normal.email);
+    linkedPatient = await createIdentity(app, "users.linked", "patient");
+    createdEmails.push(admin.email, normal.email, linkedPatient.email);
+
+    await User.updateOne(
+      { _id: linkedPatient.userId },
+      { $set: { fhirPatientId: "dup-patient-1001" } },
+    );
 
     adminUserId = admin.userId;
     normalUserId = normal.userId;
+    linkedPatientUserId = linkedPatient.userId;
   });
 
   afterAll(async () => {
@@ -116,6 +126,24 @@ describe("User routes", () => {
       .send({ role: "patient" });
 
     expect(res.status).toBe(404);
+  });
+
+  it("returns 409 when linking a fhirPatientId already linked to another user", async () => {
+    const ensurePatientRole = await admin.agent
+      .patch(`/api/users/${normalUserId}/role`)
+      .send({ role: "patient" });
+    expect(ensurePatientRole.status).toBe(200);
+
+    const res = await admin.agent
+      .patch(`/api/users/${normalUserId}/link-patient`)
+      .send({ fhirPatientId: "dup-patient-1001" });
+
+    expect(res.status).toBe(409);
+    expect(res.body?.status).toBe("fail");
+    expect(String(res.body?.data?.message ?? "")).toMatch(/already linked/i);
+
+    const linkedUserAfter = await User.findById(linkedPatientUserId).lean();
+    expect(linkedUserAfter?.fhirPatientId).toBe("dup-patient-1001");
   });
 
   it("keeps admin identity accessible for sanity", async () => {

@@ -37,6 +37,17 @@ const userSchema = new Schema<IUser>(
   { timestamps: true, collection: "user" },
 );
 
+// One FHIR patient record can only be linked to one app user account.
+userSchema.index(
+  { fhirPatientId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      fhirPatientId: { $exists: true, $type: "string", $ne: "" },
+    },
+  },
+);
+
 export const User = model<IUser>("user", userSchema);
 
 // ── Session ─────────────────────────────────────────────────────
