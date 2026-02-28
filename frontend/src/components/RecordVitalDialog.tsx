@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import type { VitalsDTO } from "@fhir-mern/shared";
 import { VITAL_PRESETS } from "@/lib/constants";
-import { createVital } from "@/lib/vitals.api";
+import { createPortalVital, createVital } from "@/lib/vitals.api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,10 +27,16 @@ import {
 } from "@/components/ui/select";
 
 interface RecordVitalDialogProps {
-  patientId: string;
+  patientId?: string;
+  mode?: "clinical" | "portal";
+  buttonLabel?: string;
 }
 
-export function RecordVitalDialog({ patientId }: RecordVitalDialogProps) {
+export function RecordVitalDialog({
+  patientId,
+  mode = "clinical",
+  buttonLabel,
+}: RecordVitalDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectedCode, setSelectedCode] = useState("");
   const [value, setValue] = useState("");
@@ -46,23 +52,34 @@ export function RecordVitalDialog({ patientId }: RecordVitalDialogProps) {
     mutationFn: () => {
       if (!preset) throw new Error("Select a vital type");
       if (!isValueValid) throw new Error("Enter a valid positive number");
-      return createVital(patientId, {
+      if (mode === "clinical" && !patientId) {
+        throw new Error("Patient ID is required");
+      }
+
+      const payload = {
         code: preset.code,
         display: preset.display,
         value: numValue,
         unit: preset.unit,
         unitCode: preset.unitCode,
-      });
+      };
+
+      return mode === "portal"
+        ? createPortalVital(payload)
+        : createVital(patientId!, payload);
     },
     onSuccess: (newVital) => {
-      // Prepend the server-returned vital to cache (newest first)
-      queryClient.setQueryData(
-        ["vitals", patientId],
-        (old: VitalsDTO[] | undefined) =>
-          old ? [newVital, ...old] : [newVital],
+      const queryKey =
+        mode === "portal" ? ["portal", "vitals"] : ["vitals", patientId!];
+      queryClient.setQueryData(queryKey, (old: VitalsDTO[] | undefined) =>
+        old ? [newVital, ...old] : [newVital],
       );
-      // staleTime (30s) handles background refetch — no manual invalidation needed
-      toast.success("Vital sign recorded");
+      void queryClient.invalidateQueries({ queryKey });
+      toast.success(
+        mode === "portal"
+          ? "Reading submitted successfully"
+          : "Vital sign recorded",
+      );
       resetAndClose();
     },
     onError: (err) => {
@@ -89,14 +106,19 @@ export function RecordVitalDialog({ patientId }: RecordVitalDialogProps) {
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus className="mr-2 h-4 w-4" />
-          Record Vital
+          {buttonLabel ??
+            (mode === "portal" ? "Submit Reading" : "Record Vital")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Record Vital Sign</DialogTitle>
+          <DialogTitle>
+            {mode === "portal" ? "Submit Reading" : "Record Vital Sign"}
+          </DialogTitle>
           <DialogDescription>
-            Add a new vital sign reading for this patient.
+            {mode === "portal"
+              ? "Add your own vital sign reading."
+              : "Add a new vital sign reading for this patient."}
           </DialogDescription>
         </DialogHeader>
 

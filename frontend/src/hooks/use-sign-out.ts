@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -10,20 +10,20 @@ import { authClient } from "@/lib/auth-client";
  */
 export function useSignOut() {
   const navigate = useNavigate();
-  const isSigningOutRef = useRef(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const signOut = useCallback(async () => {
-    if (isSigningOutRef.current) return;
-    isSigningOutRef.current = true;
+    if (isSigningOut) return;
+    setIsSigningOut(true);
     try {
       await authClient.signOut();
       navigate("/login", { replace: true });
     } catch (err) {
       console.error("Sign out failed:", err);
       toast.error("Sign out failed");
-      isSigningOutRef.current = false;
+      setIsSigningOut(false);
     }
-  }, [navigate]);
+  }, [isSigningOut, navigate]);
 
-  return { signOut, isSigningOut: isSigningOutRef.current };
+  return { signOut, isSigningOut };
 }

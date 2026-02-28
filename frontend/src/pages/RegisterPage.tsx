@@ -56,7 +56,7 @@ export function RegisterPage() {
         {
           onSuccess: () => {
             toast.success("Account created successfully");
-            navigate("/dashboard/patients", { replace: true });
+            navigate("/", { replace: true });
           },
           onError: (ctx) => {
             toast.error(ctx.error.message ?? "Registration failed");

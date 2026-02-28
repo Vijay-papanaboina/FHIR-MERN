@@ -1,4 +1,8 @@
-import type { CreateVitalInput, PatientDTO, VitalsDTO } from "@fhir-mern/shared";
+import type {
+  CreateVitalInput,
+  PatientDTO,
+  VitalsDTO,
+} from "@fhir-mern/shared";
 import { getAssignmentsByPatient } from "../repositories/assignment.repository.js";
 import { findPractitionersByIds } from "../repositories/user.repository.js";
 import { getPatient } from "./patient.service.js";
@@ -23,7 +27,9 @@ export const getPortalCareTeam = async (
   patientId: string,
 ): Promise<CareTeamMemberDTO[]> => {
   const assignments = await getAssignmentsByPatient(patientId, true);
-  const practitionerIds = [...new Set(assignments.map((a) => a.assignedUserId))];
+  const practitionerIds = [
+    ...new Set(assignments.map((a) => a.assignedUserId)),
+  ];
   const practitioners = await findPractitionersByIds(practitionerIds);
   const practitionersById = new Map(
     practitioners.map((p) => [String(p._id), p] as const),

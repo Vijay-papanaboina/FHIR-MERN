@@ -40,7 +40,9 @@ export const createApp = () => {
 
   // ── Rate limiter & body parser ──────────────────────────────────
   app.use(globalLimiter);
-  app.use(express.json({ type: ["application/json", "application/fhir+json"] }));
+  app.use(
+    express.json({ type: ["application/json", "application/fhir+json"] }),
+  );
 
   // ── Routes ──────────────────────────────────────────────────────
   app.get("/", (req, res) => {
@@ -56,7 +58,9 @@ export const createApp = () => {
 
   // ── 404 catch-all ───────────────────────────────────────────────
   app.all("/{*any}", (req, res, next) => {
-    next(new AppError(`Route not found: ${req.method} ${req.originalUrl}`, 404));
+    next(
+      new AppError(`Route not found: ${req.method} ${req.originalUrl}`, 404),
+    );
   });
 
   // ── Global error handler (must be last) ─────────────────────────

@@ -20,3 +20,11 @@ export function createVital(
     input,
   );
 }
+
+export function fetchPortalVitals(): Promise<VitalsDTO[]> {
+  return apiGet<VitalsDTO[]>("/api/portal/vitals");
+}
+
+export function createPortalVital(input: CreateVitalInput): Promise<VitalsDTO> {
+  return apiPost<VitalsDTO>("/api/portal/vitals", input);
+}

@@ -1,8 +1,12 @@
 import { NavLink, Outlet } from "react-router";
-import { Users, Activity } from "lucide-react";
+import { Users, Activity, Bell, BriefcaseMedical, UserCog } from "lucide-react";
 
 import { ModeToggle } from "@/components/mode-toggle";
+import { AlertPanel } from "@/components/AlertPanel";
 import { SidebarUserMenu } from "@/components/SidebarUserMenu";
+import { useAlertsSse } from "@/hooks/use-alerts-sse";
+import { useResolvedRole } from "@/hooks/use-resolved-role";
+import type { AppRole } from "@/lib/roles";
 import {
   Sidebar,
   SidebarContent,
@@ -23,11 +27,32 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-const navItems = [
-  { title: "Patients", to: "/dashboard/patients", icon: Users },
-];
+type NavItem = {
+  title: string;
+  to: string;
+  icon: typeof Users;
+};
 
-function AppSidebar() {
+const dashboardNavByRole: Partial<Record<AppRole, NavItem[]>> = {
+  practitioner: [
+    { title: "Patients", to: "/dashboard/patients", icon: Users },
+    { title: "Alerts", to: "/dashboard/alerts", icon: Bell },
+  ],
+  admin: [
+    { title: "Patients", to: "/dashboard/patients", icon: Users },
+    { title: "Alerts", to: "/dashboard/alerts", icon: Bell },
+    {
+      title: "Assignments",
+      to: "/dashboard/assignments",
+      icon: BriefcaseMedical,
+    },
+    { title: "Users", to: "/dashboard/users", icon: UserCog },
+  ],
+};
+
+function AppSidebar({ role }: { role: AppRole | null }) {
+  const navItems = role ? (dashboardNavByRole[role] ?? []) : [];
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -86,15 +111,19 @@ function AppSidebar() {
 }
 
 export function DashboardLayout() {
+  const { role } = useResolvedRole();
+  useAlertsSse();
+
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <AppSidebar />
+        <AppSidebar role={role} />
         <SidebarInset>
           <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4!" />
             <div className="flex-1" />
+            <AlertPanel />
             <ModeToggle />
           </header>
           <main className="flex-1 overflow-auto p-4 md:p-6">

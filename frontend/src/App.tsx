@@ -19,7 +19,13 @@ function App() {
     <ThemeProvider defaultTheme="dark" storageKey="fhir-ui-theme">
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
-        <Toaster richColors position="top-right" />
+        <Toaster
+          richColors
+          position="top-right"
+          closeButton
+          visibleToasts={3}
+          expand={false}
+        />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </ThemeProvider>

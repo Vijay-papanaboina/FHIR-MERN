@@ -9,9 +9,11 @@ import {
   getAlertsByPatient,
   acknowledgeAlert,
   getAlertById,
+  getUnacknowledgedAlertCount,
 } from "../repositories/alert.repository.js";
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
+const DEFAULT_BADGE_WINDOW_HOURS = 24;
 
 /**
  * GET /api/alerts/stream
@@ -89,12 +91,25 @@ export const getMyAlerts = async (
       1,
       Math.min(100, parseInt(req.query.limit as string) || 50),
     );
+    const unacknowledgedOnly =
+      String(req.query.unacknowledged ?? "") === "true";
     const skip = (page - 1) * limit;
 
     const result =
       req.user?.role === "admin"
-        ? await getAllAlerts({ limit, skip })
-        : await getAlertsForUser(userId, { limit, skip });
+        ? await getAllAlerts({
+            limit,
+            skip,
+            ...(unacknowledgedOnly ? { unacknowledgedForUserId: userId } : {}),
+          })
+        : await getAlertsForUser(userId, { limit, skip, unacknowledgedOnly });
+    const badgeWindowHours = DEFAULT_BADGE_WINDOW_HOURS;
+    const since = new Date(Date.now() - badgeWindowHours * 60 * 60 * 1000);
+    const unacknowledgedCount = await getUnacknowledgedAlertCount(
+      userId,
+      req.user?.role === "admin",
+      since,
+    );
 
     res.json(
       jsend.success({
@@ -102,6 +117,43 @@ export const getMyAlerts = async (
         total: result.total,
         page,
         limit,
+        unacknowledgedCount,
+      }),
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/alerts/summary
+ * Returns badge counters for the current user.
+ */
+export const getMyAlertsSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) throw new AppError("Authentication required", 401);
+
+    const rawHours = parseInt(req.query.hours as string, 10);
+    const hours = Number.isFinite(rawHours)
+      ? Math.max(1, Math.min(168, rawHours))
+      : DEFAULT_BADGE_WINDOW_HOURS;
+
+    const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const unacknowledgedCount = await getUnacknowledgedAlertCount(
+      userId,
+      req.user?.role === "admin",
+      since,
+    );
+
+    res.json(
+      jsend.success({
+        unacknowledgedCount,
+        windowHours: hours,
       }),
     );
   } catch (err) {

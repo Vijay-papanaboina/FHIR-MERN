@@ -1,35 +1,54 @@
 # Frontend (FHIR MERN)
 
-The React client for the FHIR MERN application. It provides a modern interface for viewing and managing FHIR (Fast Healthcare Interoperability Resources) healthcare data.
+React + Vite client for the clinical dashboard and patient portal.
 
-## Tech Stack
+## Stack
 
-- **Framework**: React 19 + Vite
-- **Styling**: Tailwind CSS v4 + Shadcn UI
-- **Data Fetching**: `@tanstack/react-query`
-- **Routing**: React Router v7
-- **Forms & Validation**: React Hook Form + Zod
-- **Icons**: Lucide React
+- React 19 + Vite
+- React Router v7
+- TanStack Query
+- Tailwind CSS v4 + shadcn/ui
+- Better Auth client
+- Zustand (alerts state)
+- Vitest + Testing Library
 
-## Key Features
+## App Areas
 
-- **Dashboard**: View recent patient records and vital signs metrics.
-- **Authentication**: Email/password and OAuth (Google) support using Better Auth client.
-- **Patient Detail**: Access detailed patient information including history and observations.
-- **Vitals Tracking**: Add and visualize basic vitals (e.g., Blood Pressure, Heart Rate) via Recharts.
+- `/dashboard/*`: admin and practitioner clinical experience
+- `/portal/*`: patient experience
+- Role-aware route guards and redirects
+- Real-time alert flow via SSE for clinical staff
 
-## Development setup
+## Setup
 
-From the `frontend` directory:
+From `frontend/`:
 
 ```bash
-# Start development server
+npm install
 npm run dev
-
-# Run type checks and build
-npm run build
 ```
 
-## Environment Variables
+## Scripts
 
-Ensure the backend server is running and accessible to the frontend. Create the frontend environment configuration by copying the example template (`cp .env.example .env`) and add the default `VITE_API_URL` value (e.g., `VITE_API_URL=http://localhost:3000`). This default can be overridden in your local `.env` file.
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run test
+npm run test:watch
+npm run test:coverage
+```
+
+## Environment
+
+Copy `.env.example` to `.env` and set:
+
+```bash
+VITE_API_URL=http://localhost:3000
+```
+
+## Testing Notes
+
+- Unit-style tests are colocated with source files (`src/**`).
+- DOM/hook tests use `// @vitest-environment jsdom`.
+- Shared test setup is in `src/test/setup.ts`.

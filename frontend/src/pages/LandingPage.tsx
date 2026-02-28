@@ -70,7 +70,7 @@ export function LandingPage() {
           <nav className="flex items-center gap-8">
             {isLoggedIn ? (
               <Button asChild>
-                <Link to="/dashboard">Go to Dashboard</Link>
+                <Link to="/">Go to Workspace</Link>
               </Button>
             ) : (
               <>
@@ -117,8 +117,8 @@ export function LandingPage() {
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             {isLoggedIn ? (
               <Button size="lg" className="gap-2 text-base" asChild>
-                <Link to="/dashboard">
-                  Go to Dashboard
+                <Link to="/">
+                  Go to Workspace
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -186,8 +186,8 @@ export function LandingPage() {
             Create an account and start managing clinical data in minutes.
           </p>
           <Button size="lg" className="mt-8 gap-2 text-base" asChild>
-            <Link to={isLoggedIn ? "/dashboard" : "/register"}>
-              {isLoggedIn ? "Go to Dashboard" : "Create your account"}
+            <Link to={isLoggedIn ? "/" : "/register"}>
+              {isLoggedIn ? "Go to Workspace" : "Create your account"}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

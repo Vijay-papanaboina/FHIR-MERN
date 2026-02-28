@@ -2,7 +2,11 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { AppError } from "../utils/AppError.js";
 import { jsend } from "../utils/jsend.js";
-import { changeUserRole, linkPatientToUser } from "../services/user.service.js";
+import {
+  changeUserRole,
+  linkPatientToUser,
+  listSafeUsers,
+} from "../services/user.service.js";
 import {
   linkPatientSchema,
   updateUserRoleSchema,
@@ -11,6 +15,33 @@ import {
 const userIdParamSchema = z.object({
   userId: z.string().min(1, "userId is required"),
 });
+
+const listUsersQuerySchema = z.object({
+  q: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(25),
+});
+
+/**
+ * GET /api/users
+ * List users for admin management table.
+ */
+export const listUsersHandler = async (req: Request, res: Response) => {
+  const queryResult = listUsersQuerySchema.safeParse(req.query);
+  if (!queryResult.success) {
+    throw new AppError(
+      queryResult.error.issues[0]?.message ?? "Invalid query parameters",
+      400,
+    );
+  }
+
+  const result = await listSafeUsers({
+    page: queryResult.data.page,
+    limit: queryResult.data.limit,
+    ...(queryResult.data.q !== undefined ? { q: queryResult.data.q } : {}),
+  });
+  res.json(jsend.success(result));
+};
 
 /**
  * PATCH /api/users/:userId/link-patient

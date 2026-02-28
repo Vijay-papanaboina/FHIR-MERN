@@ -4,6 +4,7 @@ import { AppError } from "../utils/AppError.js";
 import { createAssignmentSchema } from "../validators/assignment.validator.js";
 import {
   assignPatient,
+  getAllSystemAssignments,
   removeAssignment,
   getPatientAssignments,
   getUserAssignments,
@@ -60,9 +61,8 @@ export const listAssignmentsHandler = async (req: Request, res: Response) => {
     return res.json(jsend.success(assignments));
   }
 
-  // No filter — this would need a general "list all" which isn't
-  // in the repo yet. For now, require patientFhirId.
-  throw new AppError("Query parameter 'patientFhirId' is required", 400);
+  const assignments = await getAllSystemAssignments(true);
+  return res.json(jsend.success(assignments));
 };
 
 /**

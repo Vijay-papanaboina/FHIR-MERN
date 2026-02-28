@@ -11,6 +11,7 @@ const userModelMocks = vi.hoisted(() => ({
 const assignmentRepoMocks = vi.hoisted(() => ({
   createAssignment: vi.fn(),
   deactivateAssignment: vi.fn(),
+  getAllAssignments: vi.fn(),
   getAssignmentsByPatient: vi.fn(),
   getAssignmentsByUser: vi.fn(),
   getAssignmentById: vi.fn(),
@@ -18,10 +19,14 @@ const assignmentRepoMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../../src/models/auth.model.js", () => userModelMocks);
-vi.mock("../../src/repositories/assignment.repository.js", () => assignmentRepoMocks);
+vi.mock(
+  "../../src/repositories/assignment.repository.js",
+  () => assignmentRepoMocks,
+);
 
 import {
   assignPatient,
+  getAllSystemAssignments,
   getPatientAssignments,
   getPractitioners,
   getUserAssignments,
@@ -65,7 +70,9 @@ describe("assignment.service", () => {
 
   it("rejects duplicate active assignment", async () => {
     userModelMocks.User.findById.mockResolvedValue({ role: "practitioner" });
-    assignmentRepoMocks.findActiveAssignment.mockResolvedValue({ _id: "existing" });
+    assignmentRepoMocks.findActiveAssignment.mockResolvedValue({
+      _id: "existing",
+    });
 
     await expect(
       assignPatient("admin-1", {
@@ -82,20 +89,36 @@ describe("assignment.service", () => {
       statusCode: 404,
     });
 
-    assignmentRepoMocks.getAssignmentById.mockResolvedValueOnce({ active: false });
+    assignmentRepoMocks.getAssignmentById.mockResolvedValueOnce({
+      active: false,
+    });
     await expect(removeAssignment("a1")).rejects.toMatchObject<AppError>({
       statusCode: 400,
     });
 
-    assignmentRepoMocks.getAssignmentById.mockResolvedValueOnce({ active: true });
-    assignmentRepoMocks.deactivateAssignment.mockResolvedValue({ _id: "a1", active: false });
-    await expect(removeAssignment("a1")).resolves.toEqual({ _id: "a1", active: false });
+    assignmentRepoMocks.getAssignmentById.mockResolvedValueOnce({
+      active: true,
+    });
+    assignmentRepoMocks.deactivateAssignment.mockResolvedValue({
+      _id: "a1",
+      active: false,
+    });
+    await expect(removeAssignment("a1")).resolves.toEqual({
+      _id: "a1",
+      active: false,
+    });
   });
 
   it("delegates assignment list lookups", async () => {
-    assignmentRepoMocks.getAssignmentsByPatient.mockResolvedValue([{ _id: "a1" }]);
+    assignmentRepoMocks.getAllAssignments.mockResolvedValue([{ _id: "a0" }]);
+    assignmentRepoMocks.getAssignmentsByPatient.mockResolvedValue([
+      { _id: "a1" },
+    ]);
     assignmentRepoMocks.getAssignmentsByUser.mockResolvedValue([{ _id: "a2" }]);
 
+    await expect(getAllSystemAssignments(true)).resolves.toEqual([
+      { _id: "a0" },
+    ]);
     await expect(getPatientAssignments("p1")).resolves.toEqual([{ _id: "a1" }]);
     await expect(getUserAssignments("u1")).resolves.toEqual([{ _id: "a2" }]);
   });

@@ -4,7 +4,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { connectMongo } from "../../src/config/db.js";
 import { User } from "../../src/models/auth.model.js";
 import { AppError } from "../../src/utils/AppError.js";
-import { changeUserRole, linkPatientToUser } from "../../src/services/user.service.js";
+import {
+  changeUserRole,
+  linkPatientToUser,
+  listSafeUsers,
+} from "../../src/services/user.service.js";
 
 describe("user service", () => {
   beforeAll(async () => {
@@ -12,7 +16,9 @@ describe("user service", () => {
   });
 
   afterAll(async () => {
-    await User.deleteMany({ email: /service\.(patient|link)\..*@example\.com/ });
+    await User.deleteMany({
+      email: /service\.(patient|link|search|regex)\..*@example\.com/,
+    });
     await mongoose.disconnect();
   });
 
@@ -53,6 +59,118 @@ describe("user service", () => {
 
     expect(error).toBeInstanceOf(AppError);
     expect((error as AppError).statusCode).toBe(400);
-    expect((error as AppError).message).toMatch(/Invalid FHIR Patient ID format/);
+    expect((error as AppError).message).toMatch(
+      /Invalid FHIR Patient ID format/,
+    );
+  });
+
+  it("listSafeUsers returns paginated safe payload", async () => {
+    const now = Date.now();
+    await User.create([
+      {
+        _id: randomUUID(),
+        name: "Service Search A",
+        email: `service.search.a.${now}@example.com`,
+        emailVerified: true,
+        role: "patient",
+        fhirPatientId: null,
+      },
+      {
+        _id: randomUUID(),
+        name: "Service Search B",
+        email: `service.search.b.${now}@example.com`,
+        emailVerified: true,
+        role: "practitioner",
+        fhirPatientId: null,
+      },
+    ]);
+
+    const out = await listSafeUsers({
+      q: `service.search.a.${now}`,
+      page: 1,
+      limit: 25,
+    });
+
+    expect(out.page).toBe(1);
+    expect(out.limit).toBe(25);
+    expect(out.total).toBeGreaterThanOrEqual(1);
+    expect(out.items.length).toBeGreaterThanOrEqual(1);
+    expect(out.items[0]).toHaveProperty("_id");
+    expect(out.items[0]).toHaveProperty("name");
+    expect(out.items[0]).toHaveProperty("email");
+    expect(out.items[0]).toHaveProperty("role");
+    expect(out.items[0]).toHaveProperty("fhirPatientId");
+  });
+
+  it("linkPatientToUser rejects duplicate fhirPatientId across users", async () => {
+    expect.assertions(3);
+    const now = Date.now();
+    const linkedUserId = randomUUID();
+    const targetUserId = randomUUID();
+
+    await User.create([
+      {
+        _id: linkedUserId,
+        name: "Already Linked Patient",
+        email: `service.link.linked.${now}@example.com`,
+        emailVerified: true,
+        role: "patient",
+        fhirPatientId: "dup-patient-1001",
+      },
+      {
+        _id: targetUserId,
+        name: "Target Patient",
+        email: `service.link.target.${now}@example.com`,
+        emailVerified: true,
+        role: "patient",
+        fhirPatientId: null,
+      },
+    ]);
+
+    let error: unknown;
+    try {
+      await linkPatientToUser(targetUserId, "dup-patient-1001");
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).toBeInstanceOf(AppError);
+    expect((error as AppError).statusCode).toBe(409);
+    expect((error as AppError).message).toMatch(/already linked/i);
+  });
+
+  it("listSafeUsers treats regex metacharacters in q as plain text", async () => {
+    const now = Date.now();
+    const literalName = `Service Regex A.*B ${now}`;
+    const broadMatchName = `Service Regex AxxB ${now}`;
+
+    await User.create([
+      {
+        _id: randomUUID(),
+        name: literalName,
+        email: `service.regex.literal.${now}@example.com`,
+        emailVerified: true,
+        role: "patient",
+        fhirPatientId: null,
+      },
+      {
+        _id: randomUUID(),
+        name: broadMatchName,
+        email: `service.regex.broad.${now}@example.com`,
+        emailVerified: true,
+        role: "patient",
+        fhirPatientId: null,
+      },
+    ]);
+
+    const out = await listSafeUsers({
+      q: `A.*B ${now}`,
+      page: 1,
+      limit: 25,
+    });
+
+    const names = out.items.map((i) => i.name);
+    expect(names).toContain(literalName);
+    expect(names).not.toContain(broadMatchName);
   });
 });
