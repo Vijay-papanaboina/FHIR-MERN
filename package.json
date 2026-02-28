@@ -16,6 +16,7 @@
   "scripts": {
     "format": "prettier --write \"frontend/src/**/*.{ts,tsx}\" \"backend/src/**/*.ts\" \"shared/types/*.{ts,tsx,js}\" \"*.{json,md}\"",
     "postman:build": "node postman/scripts/build-collection.mjs",
+    "seed": "npm run seed --workspace=backend",
     "prepare": "husky"
   },
   "lint-staged": {

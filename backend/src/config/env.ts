@@ -17,8 +17,9 @@ const envSchema = z.object({
 
   MONGO_URI: z.url("MONGO_URI must be a valid URL"),
   FHIR_BASE_URL: z.url("FHIR_BASE_URL must be a valid URL"),
-  FHIR_USERNAME: z.string().min(1, "FHIR_USERNAME is required"),
-  FHIR_PASSWORD: z.string().min(1, "FHIR_PASSWORD is required"),
+  FHIR_SECRET: z
+    .string()
+    .min(32, "FHIR_SECRET must be at least 32 characters long"),
 
   FRONTEND_URL: z.url("FRONTEND_URL must be a valid URL"),
 
@@ -36,7 +37,7 @@ const envSchema = z.object({
 
   WEBHOOK_SECRET: z
     .string()
-    .min(16, "WEBHOOK_SECRET must be at least 16 characters")
+    .min(32, "WEBHOOK_SECRET must be at least 32 characters long")
     .optional(),
 });
 

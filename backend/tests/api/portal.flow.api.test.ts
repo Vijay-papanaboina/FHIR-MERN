@@ -13,6 +13,7 @@ import {
 
 const TEST_FHIR_BASE_URL =
   process.env["FHIR_BASE_URL"] ?? "http://localhost:8080/fhir";
+const TEST_FHIR_SECRET = process.env["FHIR_SECRET"] ?? "";
 const FETCH_TIMEOUT_MS = 8000;
 
 interface CareTeamMember {
@@ -24,9 +25,18 @@ interface CareTeamMember {
 }
 
 const getUnlinkedFhirPatientId = async (): Promise<string> => {
+  expect(
+    TEST_FHIR_SECRET.trim().length,
+    "Missing FHIR_SECRET for portal flow test",
+  ).toBeGreaterThan(0);
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   const response = await fetch(`${TEST_FHIR_BASE_URL}/Patient?_count=20`, {
+    headers: {
+      Accept: "application/fhir+json",
+      "X-FHIR-Secret": TEST_FHIR_SECRET,
+    },
     signal: controller.signal,
   }).finally(() => clearTimeout(timeout));
   expect(response.ok, "FHIR server unavailable or Patient query failed").toBe(
@@ -180,7 +190,13 @@ describe("Portal API flow", () => {
     );
     const hapiObservationResponse = await fetch(
       `${TEST_FHIR_BASE_URL}/Observation/${observationId}`,
-      { signal: obsController.signal },
+      {
+        headers: {
+          Accept: "application/fhir+json",
+          "X-FHIR-Secret": TEST_FHIR_SECRET,
+        },
+        signal: obsController.signal,
+      },
     ).finally(() => clearTimeout(obsTimeout));
     expect(hapiObservationResponse.ok).toBe(true);
     const hapiObservation = await hapiObservationResponse.json();

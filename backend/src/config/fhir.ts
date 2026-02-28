@@ -8,6 +8,10 @@ export const verifyFhirConnection = async () => {
   try {
     const baseUrl = env.FHIR_BASE_URL.replace(/\/+$/, "");
     const response = await fetch(`${baseUrl}/metadata`, {
+      headers: {
+        Accept: "application/fhir+json",
+        "X-FHIR-Secret": env.FHIR_SECRET,
+      },
       signal: controller.signal,
     });
 
@@ -27,8 +31,9 @@ export const verifyFhirConnection = async () => {
     } else {
       logger.error("Failed to reach FHIR server", error);
     }
-    clearTimeout(timeout);
-    process.exit(1);
+    throw error instanceof Error
+      ? error
+      : new Error("Failed to reach FHIR server");
   } finally {
     clearTimeout(timeout);
   }
