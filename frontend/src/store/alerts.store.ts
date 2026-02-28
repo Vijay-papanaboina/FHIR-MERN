@@ -8,6 +8,7 @@ interface AlertsState {
   appendAlert: (alert: AlertItem) => void;
   mergeAlerts: (alerts: AlertItem[]) => void;
   setAlerts: (alerts: AlertItem[]) => void;
+  setUnreadCount: (count: number) => void;
   markAllRead: () => void;
   setPanelOpen: (open: boolean) => void;
   resetAlerts: () => void;
@@ -42,10 +43,7 @@ export const useAlertsStore = create<AlertsState>()((set) => ({
       );
       return {
         alerts: upsertById(state.alerts, incoming),
-        unreadCount:
-          alreadyExists || state.isPanelOpen
-            ? state.unreadCount
-            : state.unreadCount + 1,
+        unreadCount: alreadyExists ? state.unreadCount : state.unreadCount + 1,
       };
     }),
   mergeAlerts: (incoming) =>
@@ -57,6 +55,7 @@ export const useAlertsStore = create<AlertsState>()((set) => ({
       return { alerts: sortDescByTime(next) };
     }),
   setAlerts: (incoming) => set({ alerts: sortDescByTime(incoming) }),
+  setUnreadCount: (count) => set({ unreadCount: Math.max(0, count) }),
   markAllRead: () => set({ unreadCount: 0 }),
   setPanelOpen: (open) => set({ isPanelOpen: open }),
   resetAlerts: () => set({ alerts: [], unreadCount: 0, isPanelOpen: false }),

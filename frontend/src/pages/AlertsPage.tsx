@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { Bell, AlertTriangle } from "lucide-react";
 
@@ -26,8 +26,10 @@ import {
 import { useAlertsStore } from "@/store/alerts.store";
 
 const PAGE_LIMIT = 50;
+type AlertViewFilter = "unacknowledged" | "acknowledged" | "all";
 
 export function AlertsPage() {
+  const [viewFilter, setViewFilter] = useState<AlertViewFilter>("all");
   const { session } = useResolvedRole();
   const currentUserId = useMemo(() => {
     const raw = getSessionUserValue(session, "id");
@@ -75,8 +77,35 @@ export function AlertsPage() {
     return map;
   }, [patientIds, patientQueries]);
 
-  const items =
-    alertsFromStore.length > 0 ? alertsFromStore : (data?.items ?? []);
+  const items = useMemo(
+    () => (alertsFromStore.length > 0 ? alertsFromStore : (data?.items ?? [])),
+    [alertsFromStore, data?.items],
+  );
+  const unacknowledgedCount = useMemo(
+    () =>
+      items.filter((alert) => !isAcknowledgedByUser(alert, currentUserId))
+        .length,
+    [items, currentUserId],
+  );
+  const acknowledgedCount = useMemo(
+    () =>
+      items.filter((alert) => isAcknowledgedByUser(alert, currentUserId))
+        .length,
+    [items, currentUserId],
+  );
+  const filteredItems = useMemo(() => {
+    if (viewFilter === "unacknowledged") {
+      return items.filter(
+        (alert) => !isAcknowledgedByUser(alert, currentUserId),
+      );
+    }
+    if (viewFilter === "acknowledged") {
+      return items.filter((alert) =>
+        isAcknowledgedByUser(alert, currentUserId),
+      );
+    }
+    return items;
+  }, [items, currentUserId, viewFilter]);
 
   return (
     <div className="space-y-6">
@@ -87,6 +116,32 @@ export function AlertsPage() {
         </p>
       </div>
 
+      {!isPending && !isError && (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={viewFilter === "unacknowledged" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewFilter("unacknowledged")}
+          >
+            Unacknowledged ({unacknowledgedCount})
+          </Button>
+          <Button
+            variant={viewFilter === "acknowledged" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewFilter("acknowledged")}
+          >
+            Acknowledged ({acknowledgedCount})
+          </Button>
+          <Button
+            variant={viewFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewFilter("all")}
+          >
+            All ({items.length})
+          </Button>
+        </div>
+      )}
+
       {isPending && (
         <div className="rounded-md border">
           <Table>
@@ -96,6 +151,7 @@ export function AlertsPage() {
                 <TableHead>Vital</TableHead>
                 <TableHead>Value</TableHead>
                 <TableHead>Severity</TableHead>
+                <TableHead>Acknowledged</TableHead>
                 <TableHead>Timestamp</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
@@ -114,6 +170,9 @@ export function AlertsPage() {
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-16" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-14" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-32" />
@@ -135,15 +194,21 @@ export function AlertsPage() {
         />
       )}
 
-      {!isPending && !isError && items.length === 0 && (
+      {!isPending && !isError && filteredItems.length === 0 && (
         <EmptyState
           icon={Bell}
-          title="No alerts yet"
+          title={
+            viewFilter === "all"
+              ? "No alerts yet"
+              : viewFilter === "unacknowledged"
+                ? "No unacknowledged alerts"
+                : "No acknowledged alerts"
+          }
           subtitle="Alert history will appear here when threshold breaches occur"
         />
       )}
 
-      {!isPending && !isError && items.length > 0 && (
+      {!isPending && !isError && filteredItems.length > 0 && (
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -152,13 +217,16 @@ export function AlertsPage() {
                 <TableHead>Vital</TableHead>
                 <TableHead>Value</TableHead>
                 <TableHead>Severity</TableHead>
+                <TableHead>Acknowledged</TableHead>
                 <TableHead>Timestamp</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((alert) => {
+              {filteredItems.map((alert) => {
                 const acknowledged = isAcknowledgedByUser(alert, currentUserId);
+                const recipientCount = alert.sentToUserIds?.length ?? 0;
+                const acknowledgedCount = alert.acknowledgedBy?.length ?? 0;
                 return (
                   <TableRow
                     key={alert._id}
@@ -194,6 +262,11 @@ export function AlertsPage() {
                           "Warning"
                         )}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {recipientCount > 0
+                        ? `${acknowledgedCount}/${recipientCount}`
+                        : `${acknowledgedCount}`}
                     </TableCell>
                     <TableCell>
                       {formatDateTime(alert.recordDate || alert.createdAt)}

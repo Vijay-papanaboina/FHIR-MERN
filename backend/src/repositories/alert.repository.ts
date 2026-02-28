@@ -26,18 +26,25 @@ export const getAlertsByPatient = async (
  * Get all alerts (admin global feed), sorted by most recent first.
  */
 export const getAllAlerts = async (
-  options: { limit?: number; skip?: number } = {},
+  options: {
+    limit?: number;
+    skip?: number;
+    unacknowledgedForUserId?: string;
+  } = {},
 ): Promise<{ items: IAlert[]; total: number }> => {
   const limit = options.limit ?? 50;
   const skip = options.skip ?? 0;
+  const filter = options.unacknowledgedForUserId
+    ? { acknowledgedBy: { $ne: options.unacknowledgedForUserId } }
+    : {};
 
   const [items, total] = await Promise.all([
-    Alert.find()
+    Alert.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean<IAlert[]>(),
-    Alert.countDocuments(),
+    Alert.countDocuments(filter),
   ]);
 
   return { items, total };
@@ -48,21 +55,44 @@ export const getAllAlerts = async (
  */
 export const getAlertsForUser = async (
   userId: string,
-  options: { limit?: number; skip?: number } = {},
+  options: { limit?: number; skip?: number; unacknowledgedOnly?: boolean } = {},
 ): Promise<{ items: IAlert[]; total: number }> => {
   const limit = options.limit ?? 50;
   const skip = options.skip ?? 0;
+  const filter = options.unacknowledgedOnly
+    ? { sentToUserIds: userId, acknowledgedBy: { $ne: userId } }
+    : { sentToUserIds: userId };
 
   const [items, total] = await Promise.all([
-    Alert.find({ sentToUserIds: userId })
+    Alert.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean<IAlert[]>(),
-    Alert.countDocuments({ sentToUserIds: userId }),
+    Alert.countDocuments(filter),
   ]);
 
   return { items, total };
+};
+
+export const getUnacknowledgedAlertCount = async (
+  userId: string,
+  isAdmin: boolean,
+  since: Date,
+): Promise<number> => {
+  const baseFilter = {
+    createdAt: { $gte: since },
+    acknowledgedBy: { $ne: userId },
+  } as const;
+
+  if (isAdmin) {
+    return Alert.countDocuments(baseFilter);
+  }
+
+  return Alert.countDocuments({
+    ...baseFilter,
+    sentToUserIds: userId,
+  });
 };
 
 /**

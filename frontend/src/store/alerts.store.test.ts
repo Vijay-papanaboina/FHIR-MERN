@@ -24,7 +24,7 @@ describe("alerts store", () => {
     useAlertsStore.getState().resetAlerts();
   });
 
-  it("increments unread only for new alerts when panel is closed", () => {
+  it("increments unread only for new unique alerts", () => {
     const store = useAlertsStore.getState();
     store.appendAlert(makeAlert("a1", "2026-01-01T00:00:00.000Z"));
     store.appendAlert(makeAlert("a1", "2026-01-01T00:00:00.000Z"));
@@ -34,13 +34,12 @@ describe("alerts store", () => {
     expect(out.unreadCount).toBe(1);
   });
 
-  it("does not increment unread when panel is open", () => {
+  it("supports setting unread count from backend summary", () => {
     const store = useAlertsStore.getState();
-    store.setPanelOpen(true);
-    store.appendAlert(makeAlert("a1", "2026-01-01T00:00:00.000Z"));
+    store.setUnreadCount(7);
 
     const out = useAlertsStore.getState();
-    expect(out.unreadCount).toBe(0);
+    expect(out.unreadCount).toBe(7);
   });
 
   it("merges and sorts alerts by newest time", () => {

@@ -5,6 +5,7 @@ import { isAssignedToPatient } from "../middleware/isAssignedToPatient.js";
 import {
   sseStreamHandler,
   getMyAlerts,
+  getMyAlertsSummary,
   getPatientAlerts,
   acknowledgeAlertHandler,
 } from "../controllers/alert.controller.js";
@@ -25,6 +26,7 @@ router.get("/stream", sseStreamHandler);
 
 // ── REST API ─────────────────────────────────────────────────────
 router.get("/", getMyAlerts);
+router.get("/summary", getMyAlertsSummary);
 router.get(
   "/patient/:patientFhirId",
   isAssignedToPatient("primary", "covering", { paramName: "patientFhirId" }),

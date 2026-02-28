@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { useResolvedRole } from "@/hooks/use-resolved-role";
 import type { AlertItem } from "@/lib/alert.api";
 import { useAlertsStore } from "@/store/alerts.store";
@@ -68,7 +69,29 @@ export function useAlertsSse() {
       try {
         const parsed = JSON.parse(event.data) as StreamAlertPayload;
         const alert = toAlertItem(parsed);
-        if (alert) appendAlert(alert);
+        if (!alert) return;
+
+        appendAlert(alert);
+
+        const title =
+          alert.severity === "critical"
+            ? "Critical vital alert"
+            : "Vital alert";
+        const detail = `${alert.type}: ${alert.value}${alert.unit ? ` ${alert.unit}` : ""}`;
+
+        if (alert.severity === "critical") {
+          toast.error(title, {
+            id: `alert-${alert._id}`,
+            description: detail,
+            duration: 10_000,
+          });
+        } else {
+          toast(title, {
+            id: `alert-${alert._id}`,
+            description: detail,
+            duration: 6_000,
+          });
+        }
       } catch {
         // Ignore malformed event payloads.
       }

@@ -91,20 +91,39 @@ describe("Alert routes", () => {
     expect(practitionerAlerts.status).toBe(200);
     expect(Array.isArray(practitionerAlerts.body?.data?.items)).toBe(true);
     expect(
-      practitionerAlerts.body.data.items.some((a: { _id: string }) => a._id === alertId),
+      practitionerAlerts.body.data.items.some(
+        (a: { _id: string }) => a._id === alertId,
+      ),
     ).toBe(true);
 
     const adminAlerts = await admin.agent.get("/api/alerts");
     expect(adminAlerts.status).toBe(200);
     expect(Array.isArray(adminAlerts.body?.data?.items)).toBe(true);
     expect(
-      adminAlerts.body.data.items.some((a: { _id: string }) => a._id === alertId),
+      adminAlerts.body.data.items.some(
+        (a: { _id: string }) => a._id === alertId,
+      ),
     ).toBe(true);
     expect(
       adminAlerts.body.data.items.some(
         (a: { _id: string }) => a._id === privateAlertId,
       ),
     ).toBe(true);
+  });
+
+  it("returns summary with unacknowledged count in 24h window", async () => {
+    const practitionerSummary = await practitioner.agent.get(
+      "/api/alerts/summary?hours=24",
+    );
+    expect(practitionerSummary.status).toBe(200);
+    expect(practitionerSummary.body?.status).toBe("success");
+    expect(practitionerSummary.body?.data?.windowHours).toBe(24);
+    expect(typeof practitionerSummary.body?.data?.unacknowledgedCount).toBe(
+      "number",
+    );
+    expect(
+      practitionerSummary.body?.data?.unacknowledgedCount,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it("enforces patient-assignment for patient alert listing", async () => {
@@ -134,9 +153,37 @@ describe("Alert routes", () => {
     );
     expect(practitionerForbidden.status).toBe(403);
 
-    const adminAllowed = await admin.agent.post(`/api/alerts/${privateAlertId}/acknowledge`);
+    const adminAllowed = await admin.agent.post(
+      `/api/alerts/${privateAlertId}/acknowledge`,
+    );
     expect(adminAllowed.status).toBe(200);
     expect(Array.isArray(adminAllowed.body?.data?.acknowledgedBy)).toBe(true);
+  });
+
+  it("decreases practitioner summary count after acknowledge", async () => {
+    const before = await practitioner.agent.get("/api/alerts/summary?hours=24");
+    expect(before.status).toBe(200);
+    const beforeCount = Number(before.body?.data?.unacknowledgedCount ?? 0);
+
+    const ack = await practitioner.agent.post(
+      `/api/alerts/${alertId}/acknowledge`,
+    );
+    expect(ack.status).toBe(200);
+
+    const after = await practitioner.agent.get("/api/alerts/summary?hours=24");
+    expect(after.status).toBe(200);
+    const afterCount = Number(after.body?.data?.unacknowledgedCount ?? 0);
+    expect(afterCount).toBeLessThan(beforeCount);
+
+    const unacknowledgedList = await practitioner.agent.get(
+      "/api/alerts?unacknowledged=true",
+    );
+    expect(unacknowledgedList.status).toBe(200);
+    expect(
+      (unacknowledgedList.body?.data?.items ?? []).some(
+        (a: { _id: string }) => a._id === alertId,
+      ),
+    ).toBe(false);
   });
 
   it("requires webhook secret when configured", async () => {

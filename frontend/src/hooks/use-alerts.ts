@@ -2,17 +2,35 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   acknowledgeAlert,
   fetchAlerts,
+  fetchAlertSummary,
   type AlertItem,
   type AlertListResponse,
+  type AlertSummaryResponse,
 } from "@/lib/alert.api";
 import { useAlertsStore } from "@/store/alerts.store";
 
-export function useAlerts(page = 1, limit = 50, enabled = true) {
+export function useAlerts(
+  page = 1,
+  limit = 50,
+  enabled = true,
+  options?: { unacknowledged?: boolean },
+) {
+  const unacknowledged = Boolean(options?.unacknowledged);
   return useQuery({
-    queryKey: ["alerts", page, limit],
-    queryFn: () => fetchAlerts(page, limit),
+    queryKey: ["alerts", page, limit, unacknowledged ? "unack" : "all"],
+    queryFn: () => fetchAlerts(page, limit, { unacknowledged }),
     enabled,
     staleTime: 15_000,
+  });
+}
+
+export function useAlertsSummary(hours = 24, enabled = true) {
+  return useQuery({
+    queryKey: ["alerts-summary", hours],
+    queryFn: () => fetchAlertSummary(hours),
+    enabled,
+    staleTime: 15_000,
+    refetchInterval: 30_000,
   });
 }
 
@@ -47,6 +65,17 @@ export function useAcknowledgeAlert(currentUserId: string | null) {
           };
         },
       );
+      queryClient.setQueriesData<AlertSummaryResponse>(
+        { queryKey: ["alerts-summary"] },
+        (existing) => {
+          if (!existing) return existing;
+          return {
+            ...existing,
+            unacknowledgedCount: Math.max(0, existing.unacknowledgedCount - 1),
+          };
+        },
+      );
+      void queryClient.invalidateQueries({ queryKey: ["alerts-summary"] });
     },
   });
 }

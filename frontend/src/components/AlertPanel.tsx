@@ -10,6 +10,7 @@ import {
   isAcknowledgedByUser,
   useAcknowledgeAlert,
   useAlerts,
+  useAlertsSummary,
 } from "@/hooks/use-alerts";
 import { useAlertsStore } from "@/store/alerts.store";
 import { Badge } from "@/components/ui/badge";
@@ -37,18 +38,26 @@ export function AlertPanel() {
 
   const unreadCount = useAlertsStore((state) => state.unreadCount);
   const alerts = useAlertsStore((state) => state.alerts);
-  const markAllRead = useAlertsStore((state) => state.markAllRead);
+  const setUnreadCount = useAlertsStore((state) => state.setUnreadCount);
   const mergeAlerts = useAlertsStore((state) => state.mergeAlerts);
   const setPanelOpen = useAlertsStore((state) => state.setPanelOpen);
 
-  const { data, isFetching } = useAlerts(1, PANEL_PAGE_LIMIT, open);
+  const { data: summary } = useAlertsSummary(24, true);
+  const { data, isFetching } = useAlerts(1, PANEL_PAGE_LIMIT, open, {
+    unacknowledged: true,
+  });
   const acknowledgeMutation = useAcknowledgeAlert(currentUserId);
 
   useEffect(() => {
     setPanelOpen(open);
-    if (open) markAllRead();
     return () => setPanelOpen(false);
-  }, [markAllRead, open, setPanelOpen]);
+  }, [open, setPanelOpen]);
+
+  useEffect(() => {
+    if (typeof summary?.unacknowledgedCount === "number") {
+      setUnreadCount(summary.unacknowledgedCount);
+    }
+  }, [setUnreadCount, summary?.unacknowledgedCount]);
 
   useEffect(() => {
     if (open && data?.items?.length) {
@@ -59,9 +68,19 @@ export function AlertPanel() {
   const patientIds = useMemo(
     () =>
       Array.from(
-        new Set(alerts.map((item) => item.patientFhirId).filter(Boolean)),
+        new Set(
+          alerts
+            .filter((item) => !isAcknowledgedByUser(item, currentUserId))
+            .map((item) => item.patientFhirId)
+            .filter(Boolean),
+        ),
       ),
-    [alerts],
+    [alerts, currentUserId],
+  );
+
+  const panelAlerts = useMemo(
+    () => alerts.filter((item) => !isAcknowledgedByUser(item, currentUserId)),
+    [alerts, currentUserId],
   );
 
   const patientQueries = useQueries({
@@ -122,13 +141,11 @@ export function AlertPanel() {
       <SheetContent side="right" className="w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Alerts</SheetTitle>
-          <SheetDescription>
-            Latest alert activity for your current session.
-          </SheetDescription>
+          <SheetDescription>Unacknowledged alerts.</SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4 pb-4">
-          {isFetching && alerts.length === 0 && (
+          {isFetching && panelAlerts.length === 0 && (
             <div className="space-y-2">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="rounded-md border p-3">
@@ -140,16 +157,19 @@ export function AlertPanel() {
             </div>
           )}
 
-          {!isFetching && alerts.length === 0 && (
+          {!isFetching && panelAlerts.length === 0 && (
             <p className="text-muted-foreground py-8 text-center text-sm">
               No alerts yet.
             </p>
           )}
 
-          {alerts.length > 0 && (
+          {panelAlerts.length > 0 && (
             <div className="space-y-2">
-              {alerts.map((alert) => {
+              {panelAlerts.map((alert) => {
                 const acknowledged = isAcknowledgedByUser(alert, currentUserId);
+                const acknowledgedByOthers = alert.acknowledgedBy.filter(
+                  (id) => id !== currentUserId,
+                ).length;
                 return (
                   <div
                     key={alert._id}
@@ -201,6 +221,12 @@ export function AlertPanel() {
                       >
                         {acknowledged ? "Acknowledged" : "Acknowledge"}
                       </Button>
+                      {!acknowledged && acknowledgedByOthers > 0 && (
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          Acknowledged by {acknowledgedByOthers}{" "}
+                          {acknowledgedByOthers === 1 ? "other" : "others"}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
