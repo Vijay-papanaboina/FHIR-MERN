@@ -41,7 +41,7 @@ export const deactivateAssignment = (
   return Assignment.findOneAndUpdate(
     { _id: assignmentId, active: true },
     { active: false, deactivatedAt: new Date() },
-    { new: true },
+    { returnDocument: "after" },
   );
 };
 

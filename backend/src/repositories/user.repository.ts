@@ -16,17 +16,22 @@ export const findUserByFhirPatientId = (fhirPatientId: string) =>
   User.findOne({ fhirPatientId });
 
 export const updateUserRoleById = (userId: string, role: UserRole) =>
-  User.findByIdAndUpdate(userId, { role }, { new: true });
+  User.findByIdAndUpdate(userId, { role }, { returnDocument: "after" });
 
 export const updateUserFieldsById = (
   userId: string,
   updates: Partial<Pick<IUser, "role" | "fhirPatientId">>,
-) => User.findByIdAndUpdate(userId, updates, { new: true });
+) => User.findByIdAndUpdate(userId, updates, { returnDocument: "after" });
 
 export const updateUserFhirPatientIdById = (
   userId: string,
   fhirPatientId: string,
-) => User.findByIdAndUpdate(userId, { fhirPatientId }, { new: true });
+) =>
+  User.findByIdAndUpdate(
+    userId,
+    { fhirPatientId },
+    { returnDocument: "after" },
+  );
 
 export interface ListUsersOptions {
   q?: string;

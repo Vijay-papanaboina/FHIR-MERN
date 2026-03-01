@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
+import { sanitizeReturnTo } from "@/lib/return-to";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,23 +27,6 @@ const loginSchema = z.object({
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
-
-function isSafeReturnPath(path: string): boolean {
-  const value = path.trim();
-  return (
-    value.startsWith("/") && !value.startsWith("//") && !value.includes("://")
-  );
-}
-
-function sanitizeReturnTo(rawValue: string | null): string {
-  if (!rawValue) return "/";
-  try {
-    const decoded = decodeURIComponent(rawValue).trim();
-    return isSafeReturnPath(decoded) ? decoded : "/";
-  } catch {
-    return "/";
-  }
-}
 
 export function LoginPage() {
   const navigate = useNavigate();

@@ -18,3 +18,19 @@ export function fetchPatient(id: string): Promise<PatientDTO> {
 export function fetchAssignedPatients(): Promise<PatientDTO[]> {
   return apiGet<PatientDTO[]>("/api/patients/assigned");
 }
+
+export type PatientAssignmentRole =
+  | "primary"
+  | "covering"
+  | "consulting"
+  | "admin";
+
+export function fetchPatientAssignmentRole(
+  id: string,
+): Promise<{ assignmentRole: PatientAssignmentRole }> {
+  const trimmed = id.trim();
+  if (!trimmed) return Promise.reject(new Error("Patient ID is required"));
+  return apiGet<{ assignmentRole: PatientAssignmentRole }>(
+    `/api/patients/${encodeURIComponent(trimmed)}/assignment-role`,
+  );
+}

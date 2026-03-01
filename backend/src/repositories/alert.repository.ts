@@ -106,7 +106,7 @@ export const acknowledgeAlert = async (
   return Alert.findByIdAndUpdate(
     alertId,
     { $addToSet: { acknowledgedBy: userId } },
-    { new: true },
+    { returnDocument: "after" },
   ).lean<IAlert | null>();
 };
 

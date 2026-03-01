@@ -4,6 +4,7 @@ import type {
   VitalsDTO,
 } from "@fhir-mern/shared";
 import { getAssignmentsByPatient } from "../repositories/assignment.repository.js";
+import { getMedicationRequestsByPatient } from "../repositories/medication-request.repository.js";
 import { findPractitionersByIds } from "../repositories/user.repository.js";
 import { getPatient } from "./patient.service.js";
 import {
@@ -65,4 +66,10 @@ export const submitPortalVital = (
   input: CreateVitalInput,
 ): Promise<VitalsDTO> => {
   return createPatientReportedVital(patientId, input);
+};
+
+export const getPortalMedications = (
+  patientId: string,
+): Promise<Record<string, unknown>> => {
+  return getMedicationRequestsByPatient(patientId);
 };

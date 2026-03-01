@@ -6,13 +6,7 @@ import {
   isPathAllowedForRole,
   type AppRole,
 } from "@/lib/roles";
-
-/** Only allow paths that start with a single "/" and have no scheme */
-function isValidReturnTo(path: string): boolean {
-  return (
-    path.startsWith("/") && !path.startsWith("//") && !path.includes("://")
-  );
-}
+import { isSafeReturnPath } from "@/lib/return-to";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -36,7 +30,7 @@ export function ProtectedRoute({
 
   if (!session) {
     const raw = location.pathname + location.search;
-    const returnTo = isValidReturnTo(raw)
+    const returnTo = isSafeReturnPath(raw)
       ? encodeURIComponent(raw)
       : encodeURIComponent("/");
     return <Navigate to={`/login?returnTo=${returnTo}`} replace />;
