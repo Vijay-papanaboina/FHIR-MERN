@@ -54,8 +54,12 @@ const fhirFetch = async (
     }
 
     if (!response.ok) {
+      const bodyText = await response.text().catch(() => "");
+      const detail = bodyText.trim().slice(0, 500);
       throw new AppError(
-        `FHIR ${method} failed with status ${response.status}`,
+        detail
+          ? `FHIR ${method} failed with status ${response.status}: ${detail}`
+          : `FHIR ${method} failed with status ${response.status}`,
         502,
       );
     }

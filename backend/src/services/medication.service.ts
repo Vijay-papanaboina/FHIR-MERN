@@ -155,19 +155,16 @@ export const prescribeMedication = async (
 
   await assertWriteAccess(actor, normalizedPatientId);
 
-  const medicationRequest = await createMedicationRequest(
-    normalizedPatientId,
-    actor.userId,
-    {
-      drugName: body.data.drugName,
-      ...(body.data.rxNormCode !== undefined
-        ? { rxNormCode: body.data.rxNormCode }
-        : {}),
-      dosageInstructions: body.data.dosageInstructions,
-      frequency: body.data.frequency,
-      startDate: body.data.startDate,
-    },
-  );
+  const medicationRequest = await createMedicationRequest(normalizedPatientId, {
+    drugName: body.data.drugName,
+    ...(body.data.rxNormCode !== undefined
+      ? { rxNormCode: body.data.rxNormCode }
+      : {}),
+    dosageInstructions: body.data.dosageInstructions,
+    frequency: body.data.frequency,
+    startDate: body.data.startDate,
+    ...(actor.name ? { requesterDisplay: actor.name } : {}),
+  });
 
   const medicationRequestId = String(medicationRequest.id ?? "").trim();
   if (!medicationRequestId) {

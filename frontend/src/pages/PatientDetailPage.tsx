@@ -483,7 +483,7 @@ export function PatientDetailPage() {
                         <TableCell className="w-40">
                           <Select
                             disabled={updateMedicationStatus.isPending}
-                            onValueChange={(nextStatus) => {
+                            onValueChange={(nextStatus: string) => {
                               if (
                                 nextStatus !== "completed" &&
                                 nextStatus !== "stopped"

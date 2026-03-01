@@ -26,6 +26,8 @@ export interface CreateMedicationRequestInput {
   dosageInstructions: string;
   frequency: string;
   startDate: string;
+  requesterDisplay?: string;
+  requesterReference?: string;
   status?: MedicationRequestStatus;
   intent?: MedicationRequestIntent;
 }
@@ -52,13 +54,21 @@ const buildMedicationCodeableConcept = (
 
 const buildMedicationRequestResource = (
   patientFhirId: string,
-  practitionerFhirId: string,
   input: CreateMedicationRequestInput,
 ): Record<string, unknown> => {
   const authoredOn = new Date(input.startDate);
   const normalizedAuthoredOn = Number.isNaN(authoredOn.getTime())
     ? new Date().toISOString()
     : authoredOn.toISOString();
+  const requesterReference = input.requesterReference?.trim();
+  const requesterDisplay = input.requesterDisplay?.trim();
+  const requester =
+    requesterReference || requesterDisplay
+      ? {
+          ...(requesterReference ? { reference: requesterReference } : {}),
+          ...(requesterDisplay ? { display: requesterDisplay } : {}),
+        }
+      : undefined;
 
   return {
     resourceType: "MedicationRequest",
@@ -68,9 +78,7 @@ const buildMedicationRequestResource = (
     subject: {
       reference: `Patient/${patientFhirId}`,
     },
-    requester: {
-      reference: `Practitioner/${practitionerFhirId}`,
-    },
+    ...(requester ? { requester } : {}),
     medicationCodeableConcept: buildMedicationCodeableConcept(input),
     dosageInstruction: [
       {
@@ -82,14 +90,9 @@ const buildMedicationRequestResource = (
 
 export const createMedicationRequest = async (
   patientFhirId: string,
-  practitionerFhirId: string,
   data: CreateMedicationRequestInput,
 ): Promise<Record<string, unknown>> => {
-  const resource = buildMedicationRequestResource(
-    patientFhirId.trim(),
-    practitionerFhirId.trim(),
-    data,
-  );
+  const resource = buildMedicationRequestResource(patientFhirId.trim(), data);
   return fhirPost(`${fhirBaseUrl()}/MedicationRequest`, resource);
 };
 
@@ -103,14 +106,12 @@ export const getMedicationRequestById = async (
 export const getMedicationRequestsByPatient = async (
   patientFhirId: string,
 ): Promise<Record<string, unknown>> => {
+  const normalizedPatientId = patientFhirId.trim();
   const query = new URLSearchParams({
-    subject: `Patient/${patientFhirId.trim()}`,
+    patient: `Patient/${normalizedPatientId}`,
+    status: "active,completed,stopped",
     _sort: "-authoredon",
   });
-
-  query.append("status", "active");
-  query.append("status", "completed");
-  query.append("status", "stopped");
 
   return fhirGet(`${fhirBaseUrl()}/MedicationRequest?${query.toString()}`);
 };

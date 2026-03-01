@@ -101,13 +101,13 @@ describe("medication.service", () => {
 
     expect(medicationRepoMocks.createMedicationRequest).toHaveBeenCalledWith(
       "patient-1",
-      "u-pract",
       {
         drugName: "Lisinopril 10mg",
         rxNormCode: "12345",
         dosageInstructions: "Take one tablet by mouth",
         frequency: "Daily",
         startDate: "2026-03-01",
+        requesterDisplay: "Dr P",
       },
     );
     expect(out).toEqual(
