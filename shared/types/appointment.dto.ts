@@ -50,6 +50,23 @@ export type AppointmentLifecycleStatus =
   | "declined"
   | "cancelled";
 
+export interface AppointmentDTO {
+  id: string;
+  status: AppointmentStatus;
+  lifecycleStatus: AppointmentLifecycleStatus;
+  start: string | null;
+  end: string | null;
+  reason: string | null;
+  note: string | null;
+  cancellationReason: string | null;
+  patientReference: string | null;
+  patientParticipantStatus: AppointmentParticipantStatus | null;
+  practitionerReference: string | null;
+  practitionerParticipantStatus: AppointmentParticipantStatus | null;
+  practitionerDisplay: string | null;
+  careTeamUserId: string | null;
+}
+
 export interface CreateAppointmentRequestInput {
   careTeamUserId: string;
   start: string;

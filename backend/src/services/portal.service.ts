@@ -13,6 +13,7 @@ import {
 } from "./vitals.service.js";
 
 export interface CareTeamMemberDTO {
+  userId: string;
   name: string;
   image?: string;
   assignmentRole: "primary" | "covering" | "consulting";
@@ -46,6 +47,7 @@ export const getPortalCareTeam = async (
       }
 
       const member: CareTeamMemberDTO = {
+        userId: String(practitioner._id),
         name: practitioner.name,
         assignmentRole: assignment.assignmentRole,
       };
