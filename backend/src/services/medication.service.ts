@@ -168,6 +168,11 @@ export const prescribeMedication = async (
 
   const medicationRequestId = String(medicationRequest.id ?? "").trim();
   if (!medicationRequestId) {
+    logger.warn("MedicationRequest created without id", {
+      patientFhirId: normalizedPatientId,
+      actorUserId: actor.userId,
+      medicationRequest,
+    });
     return medicationRequest;
   }
 
@@ -281,5 +286,6 @@ export const changeMedicationStatus = async (
   return updateMedicationRequestStatus(
     normalizedMedicationId,
     statusResult.data.status,
+    currentStatus,
   );
 };

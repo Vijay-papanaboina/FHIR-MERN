@@ -83,12 +83,15 @@ export const updatePatientMedicationStatusHandler = async (
   const patientFhirId = String(req.params.patientFhirId ?? "");
   const medicationRequestId = String(req.params.id ?? "");
   const nextStatus = String(req.body?.status ?? "");
+  if (nextStatus !== "completed" && nextStatus !== "stopped") {
+    throw new AppError("status must be one of: completed, stopped", 400);
+  }
 
   const result = await changeMedicationStatus(
     actor,
     patientFhirId,
     medicationRequestId,
-    nextStatus as "completed" | "stopped",
+    nextStatus,
   );
   res.json(jsend.success(result));
 };

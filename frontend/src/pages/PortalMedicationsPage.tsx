@@ -134,47 +134,49 @@ export function PortalMedicationsPage() {
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Medication History</CardTitle>
-          <CardDescription>
-            Stopped and completed medications from your past prescriptions.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {data && medicationHistory.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No stopped or completed medications yet.
-            </p>
-          )}
-          {medicationHistory.map((medication) => (
-            <div
-              key={medication.id}
-              className="flex items-center justify-between rounded-md border p-3"
-            >
-              <div className="space-y-1">
-                <p className="font-medium">{medication.drugName}</p>
-                <p className="text-sm text-muted-foreground">
-                  {medication.dosageInstructions ?? "No dosage notes"} ·{" "}
-                  {getDoctorName(
-                    medication.prescriber,
-                    medication.prescriberReference,
-                  )}{" "}
-                  · {formatDate(medication.startDate)}
-                </p>
-              </div>
-              <Badge
-                variant={
-                  medication.status === "completed" ? "secondary" : "outline"
-                }
-                className="capitalize"
+      {data && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Medication History</CardTitle>
+            <CardDescription>
+              Stopped and completed medications from your past prescriptions.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {medicationHistory.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No stopped or completed medications yet.
+              </p>
+            )}
+            {medicationHistory.map((medication) => (
+              <div
+                key={medication.id}
+                className="flex items-center justify-between rounded-md border p-3"
               >
-                {medication.status}
-              </Badge>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+                <div className="space-y-1">
+                  <p className="font-medium">{medication.drugName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {medication.dosageInstructions ?? "No dosage notes"} ·{" "}
+                    {getDoctorName(
+                      medication.prescriber,
+                      medication.prescriberReference,
+                    )}{" "}
+                    · {formatDate(medication.startDate)}
+                  </p>
+                </div>
+                <Badge
+                  variant={
+                    medication.status === "completed" ? "secondary" : "outline"
+                  }
+                  className="capitalize"
+                >
+                  {medication.status}
+                </Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

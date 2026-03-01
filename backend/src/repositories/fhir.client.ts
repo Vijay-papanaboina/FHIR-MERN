@@ -28,6 +28,7 @@ export const fhirBaseUrl = (): string => env.FHIR_BASE_URL.replace(/\/+$/, "");
 interface FhirFetchOptions {
   method?: "GET" | "POST" | "PUT";
   body?: Record<string, unknown>;
+  headers?: Record<string, string>;
 }
 
 /**
@@ -37,14 +38,17 @@ const fhirFetch = async (
   url: string,
   options: FhirFetchOptions = {},
 ): Promise<Record<string, unknown>> => {
-  const { method = "GET", body } = options;
+  const { method = "GET", body, headers } = options;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FHIR_TIMEOUT_MS);
 
   try {
     const response = await fetch(url, {
       method,
-      headers: getFhirHeaders(!!body),
+      headers: {
+        ...getFhirHeaders(!!body),
+        ...(headers ?? {}),
+      },
       body: body ? JSON.stringify(body) : null,
       signal: controller.signal,
     });
@@ -91,3 +95,9 @@ export const fhirPost = (url: string, body: Record<string, unknown>) =>
 /** PUT a FHIR resource (create or update). */
 export const fhirPut = (url: string, body: Record<string, unknown>) =>
   fhirFetch(url, { method: "PUT", body });
+
+export const fhirPutWithHeaders = (
+  url: string,
+  body: Record<string, unknown>,
+  headers: Record<string, string>,
+) => fhirFetch(url, { method: "PUT", body, headers });

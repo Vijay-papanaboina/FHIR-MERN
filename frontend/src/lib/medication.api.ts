@@ -122,12 +122,17 @@ function extractDosageAndFrequency(resource: MedicationRequestResource): {
 
 export function mapMedicationRequest(
   resource: MedicationRequestResource,
-): MedicationDTO {
+): MedicationDTO | null {
   const medicationCodeableConcept = resource.medicationCodeableConcept;
   const { dosageInstructions, frequency } = extractDosageAndFrequency(resource);
+  const id = asStringOrNull(resource.id);
+  if (!id) {
+    console.warn("Skipping MedicationRequest without id", resource);
+    return null;
+  }
 
   return {
-    id: asStringOrNull(resource.id) ?? "",
+    id,
     drugName:
       asStringOrNull(medicationCodeableConcept?.text) ?? "Unnamed medication",
     rxNormCode: extractRxNormCode(medicationCodeableConcept),
@@ -154,7 +159,10 @@ export function mapMedicationBundle(bundle: unknown): MedicationDTO[] {
         (resource as { resourceType?: unknown }).resourceType ===
           "MedicationRequest",
     )
-    .map((resource) => mapMedicationRequest(resource));
+    .map((resource) => mapMedicationRequest(resource))
+    .filter(
+      (resource): resource is MedicationDTO => !!resource && !!resource.id,
+    );
 }
 
 export async function fetchPatientMedications(
@@ -185,7 +193,13 @@ export async function fetchPatientMedicationById(
   const data = await apiGet<MedicationRequestResource>(
     `${MEDICATION_BASE_PATH}/${encodeURIComponent(trimmedPatientId)}/medications/${encodeURIComponent(trimmedMedicationId)}`,
   );
-  return mapMedicationRequest(data);
+  const mapped = mapMedicationRequest(data);
+  if (!mapped) {
+    return Promise.reject(
+      new Error("Medication response missing required id field"),
+    );
+  }
+  return mapped;
 }
 
 export async function createPatientMedication(
@@ -196,22 +210,44 @@ export async function createPatientMedication(
   if (!trimmedPatientId) {
     return Promise.reject(new Error("Patient ID is required"));
   }
+  const drugName = input.drugName.trim();
+  const dosageInstructions = input.dosageInstructions.trim();
+  const frequency = input.frequency.trim();
+  const startDate = input.startDate.trim();
+  if (!drugName) {
+    return Promise.reject(new Error("drugName is required"));
+  }
+  if (!dosageInstructions) {
+    return Promise.reject(new Error("dosageInstructions is required"));
+  }
+  if (!frequency) {
+    return Promise.reject(new Error("frequency is required"));
+  }
+  if (!startDate) {
+    return Promise.reject(new Error("startDate is required"));
+  }
 
   const payload = {
-    drugName: input.drugName.trim(),
+    drugName,
     ...(input.rxNormCode?.trim()
       ? { rxNormCode: input.rxNormCode.trim() }
       : {}),
-    dosageInstructions: input.dosageInstructions.trim(),
-    frequency: input.frequency.trim(),
-    startDate: input.startDate.trim(),
+    dosageInstructions,
+    frequency,
+    startDate,
   };
 
   const data = await apiPost<MedicationRequestResource>(
     `${MEDICATION_BASE_PATH}/${encodeURIComponent(trimmedPatientId)}/medications`,
     payload,
   );
-  return mapMedicationRequest(data);
+  const mapped = mapMedicationRequest(data);
+  if (!mapped) {
+    return Promise.reject(
+      new Error("Medication response missing required id field"),
+    );
+  }
+  return mapped;
 }
 
 export async function updatePatientMedicationStatus(
@@ -232,5 +268,11 @@ export async function updatePatientMedicationStatus(
     `${MEDICATION_BASE_PATH}/${encodeURIComponent(trimmedPatientId)}/medications/${encodeURIComponent(trimmedMedicationId)}`,
     { status },
   );
-  return mapMedicationRequest(data);
+  const mapped = mapMedicationRequest(data);
+  if (!mapped) {
+    return Promise.reject(
+      new Error("Medication response missing required id field"),
+    );
+  }
+  return mapped;
 }

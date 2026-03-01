@@ -140,7 +140,7 @@ describe("medication.service", () => {
     expect(assignmentRepoMocks.findActiveAssignment).not.toHaveBeenCalled();
     expect(
       medicationRepoMocks.updateMedicationRequestStatus,
-    ).toHaveBeenCalledWith("med-1", "completed");
+    ).toHaveBeenCalledWith("med-1", "completed", "active");
     expect(out).toEqual(expect.objectContaining({ status: "completed" }));
   });
 

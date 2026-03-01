@@ -1,4 +1,10 @@
-import { fhirBaseUrl, fhirGet, fhirPost, fhirPut } from "./fhir.client.js";
+import {
+  fhirBaseUrl,
+  fhirGet,
+  fhirPost,
+  fhirPutWithHeaders,
+} from "./fhir.client.js";
+import { AppError } from "../utils/AppError.js";
 
 export type MedicationRequestStatus =
   | "active"
@@ -57,9 +63,10 @@ const buildMedicationRequestResource = (
   input: CreateMedicationRequestInput,
 ): Record<string, unknown> => {
   const authoredOn = new Date(input.startDate);
-  const normalizedAuthoredOn = Number.isNaN(authoredOn.getTime())
-    ? new Date().toISOString()
-    : authoredOn.toISOString();
+  if (Number.isNaN(authoredOn.getTime())) {
+    throw new AppError("Invalid startDate provided for MedicationRequest", 400);
+  }
+  const normalizedAuthoredOn = authoredOn.toISOString();
   const requesterReference = input.requesterReference?.trim();
   const requesterDisplay = input.requesterDisplay?.trim();
   const requester =
@@ -119,16 +126,41 @@ export const getMedicationRequestsByPatient = async (
 export const updateMedicationRequestStatus = async (
   id: string,
   status: MedicationRequestStatus,
+  expectedCurrentStatus?: MedicationRequestStatus,
 ): Promise<Record<string, unknown>> => {
   const trimmedId = id.trim();
   const existing = await getMedicationRequestById(trimmedId);
+  const currentStatus = existing["status"];
+  if (
+    expectedCurrentStatus &&
+    typeof currentStatus === "string" &&
+    currentStatus !== expectedCurrentStatus
+  ) {
+    throw new AppError(
+      `MedicationRequest status changed before update: expected ${expectedCurrentStatus}, got ${currentStatus}`,
+      409,
+    );
+  }
+  const meta = existing["meta"];
+  const versionId =
+    meta && typeof meta === "object"
+      ? (meta as { versionId?: unknown }).versionId
+      : undefined;
+  if (typeof versionId !== "string" || versionId.trim().length === 0) {
+    throw new AppError(
+      "Cannot update MedicationRequest without meta.versionId for optimistic locking",
+      502,
+    );
+  }
+
   const updated: Record<string, unknown> = {
     ...existing,
     status,
   };
 
-  return fhirPut(
+  return fhirPutWithHeaders(
     `${fhirBaseUrl()}/MedicationRequest/${encodeURIComponent(trimmedId)}`,
     updated,
+    { "If-Match": `W/"${versionId.trim()}"` },
   );
 };
