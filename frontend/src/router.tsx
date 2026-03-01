@@ -19,6 +19,7 @@ import { UsersPage } from "@/pages/UsersPage";
 import { PortalHealthPage } from "@/pages/PortalHealthPage";
 import { PortalVitalsPage } from "@/pages/PortalVitalsPage";
 import { PortalCareTeamPage } from "@/pages/PortalCareTeamPage";
+import { PortalMedicationsPage } from "@/pages/PortalMedicationsPage";
 import { PendingRolePage } from "@/pages/PendingRolePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
@@ -103,6 +104,7 @@ export const router = createBrowserRouter([
       { path: "health", element: <PortalHealthPage /> },
       { path: "vitals", element: <PortalVitalsPage /> },
       { path: "care-team", element: <PortalCareTeamPage /> },
+      { path: "medications", element: <PortalMedicationsPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

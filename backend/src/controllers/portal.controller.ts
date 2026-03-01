@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   getPortalCareTeam,
   getPortalDemographics,
+  getPortalMedications,
   getPortalVitals,
   submitPortalVital,
 } from "../services/portal.service.js";
@@ -66,6 +67,20 @@ export const getMyVitals = async (req: Request, res: Response) => {
 
   const vitals = await getPortalVitals(patientId);
   res.json(jsend.success(vitals));
+};
+
+/**
+ * GET /api/portal/medications
+ * Returns medication requests for the linked patient account.
+ */
+export const getMyMedications = async (req: Request, res: Response) => {
+  const patientId = req.fhirPatientId;
+  if (!patientId) {
+    throw new AppError("Account not yet linked to a patient record", 403);
+  }
+
+  const medications = await getPortalMedications(patientId);
+  res.json(jsend.success(medications));
 };
 
 /**

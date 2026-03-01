@@ -120,7 +120,7 @@ function extractDosageAndFrequency(resource: MedicationRequestResource): {
   };
 }
 
-function mapMedicationRequest(
+export function mapMedicationRequest(
   resource: MedicationRequestResource,
 ): MedicationDTO {
   const medicationCodeableConcept = resource.medicationCodeableConcept;
@@ -140,8 +140,11 @@ function mapMedicationRequest(
   };
 }
 
-function mapMedicationBundle(bundle: FhirBundle): MedicationDTO[] {
-  const entries = Array.isArray(bundle.entry) ? bundle.entry : [];
+export function mapMedicationBundle(bundle: unknown): MedicationDTO[] {
+  if (!bundle || typeof bundle !== "object") return [];
+
+  const typedBundle = bundle as FhirBundle;
+  const entries = Array.isArray(typedBundle.entry) ? typedBundle.entry : [];
   return entries
     .map((entry) => entry.resource)
     .filter(
@@ -160,7 +163,7 @@ export async function fetchPatientMedications(
   const trimmed = patientFhirId.trim();
   if (!trimmed) return Promise.reject(new Error("Patient ID is required"));
 
-  const data = await apiGet<FhirBundle>(
+  const data = await apiGet<unknown>(
     `${MEDICATION_BASE_PATH}/${encodeURIComponent(trimmed)}/medications`,
   );
   return mapMedicationBundle(data);
