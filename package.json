@@ -16,6 +16,9 @@
   "scripts": {
     "format": "prettier --write \"frontend/src/**/*.{ts,tsx}\" \"backend/src/**/*.ts\" \"shared/types/*.{ts,tsx,js}\" \"*.{json,md}\"",
     "postman:build": "node postman/scripts/build-collection.mjs",
+    "seed": "npm run seed --workspace=backend",
+    "check:commit": "npm run -w frontend lint && npm run -w @fhir-mern/shared build && npm run -w backend typecheck",
+    "check:push": "npm run -w frontend build && npm run -w backend build && npm run -w frontend test && npm run -w backend test",
     "prepare": "husky"
   },
   "lint-staged": {

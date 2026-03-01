@@ -12,17 +12,11 @@ export const getFhirHeaders = (
 ): Record<string, string> => {
   const headers: Record<string, string> = {
     Accept: "application/fhir+json",
+    "X-FHIR-Secret": env.FHIR_SECRET,
   };
 
   if (includeContentType) {
     headers["Content-Type"] = "application/fhir+json";
-  }
-
-  if (env.FHIR_USERNAME && env.FHIR_PASSWORD) {
-    const credentials = Buffer.from(
-      `${env.FHIR_USERNAME}:${env.FHIR_PASSWORD}`,
-    ).toString("base64");
-    headers["Authorization"] = `Basic ${credentials}`;
   }
 
   return headers;

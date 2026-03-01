@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      MONGO_URI: ${{ vars.MONGO_URI }}
+      FHIR_BASE_URL: ${{ vars.FHIR_BASE_URL }}
+      FHIR_SECRET: ${{ vars.FHIR_SECRET }}
+      NODE_ENV: ${{ vars.NODE_ENV }}
+      PORT: ${{ vars.PORT }}
+      FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+      BETTER_AUTH_SECRET: ${{ vars.BETTER_AUTH_SECRET }}
+      BETTER_AUTH_URL: ${{ vars.BETTER_AUTH_URL }}
+      GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ vars.GOOGLE_CLIENT_SECRET }}
+      WEBHOOK_SECRET: ${{ vars.WEBHOOK_SECRET }}
+      BACKEND_WEBHOOK_URL: ${{ vars.BACKEND_WEBHOOK_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Start services (docker compose)
+        run: docker compose up -d
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for Mongo..."
+          for i in {1..30}; do
+            (echo > /dev/tcp/localhost/27017) >/dev/null 2>&1 && echo "MongoDB is ready" && break
+            sleep 2
+          done
+          (echo > /dev/tcp/localhost/27017) >/dev/null 2>&1 || { echo "MongoDB never became ready"; exit 1; }
+          echo "Waiting for HAPI FHIR..."
+          for i in {1..40}; do
+            curl -fsS -H "X-FHIR-Secret: $FHIR_SECRET" http://localhost:8080/fhir/metadata >/dev/null && echo "HAPI server is ready" && break
+            sleep 2
+          done
+          curl -fsS -H "X-FHIR-Secret: $FHIR_SECRET" http://localhost:8080/fhir/metadata >/dev/null 2>&1 || { echo "HAPI never became ready"; exit 1; }
+      - name: Backend typecheck
+        run: npm run -w backend typecheck
+
+      - name: Backend build
+        run: npm run -w backend build
+
+      - name: Backend tests
+        run: npm run -w backend test
+
+      - name: Frontend lint
+        run: npm run -w frontend lint
+
+      - name: Frontend build
+        run: npm run -w frontend build
+
+      - name: Frontend tests
+        run: npm run -w frontend test
