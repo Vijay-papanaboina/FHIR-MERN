@@ -4,7 +4,6 @@ import { initAuth } from "../../src/config/auth.js";
 import { connectMongo } from "../../src/config/db.js";
 import { createApp } from "../../src/app.js";
 import { Assignment } from "../../src/models/assignment.model.js";
-import { User } from "../../src/models/auth.model.js";
 import {
   cleanupUsersByEmail,
   createIdentity,
@@ -24,15 +23,41 @@ interface CareTeamMember {
   _id?: string;
 }
 
-const getUnlinkedFhirPatientId = async (): Promise<string> => {
+const createPortalFlowPatient = async (): Promise<string> => {
   expect(
     TEST_FHIR_SECRET.trim().length,
     "Missing FHIR_SECRET for portal flow test",
   ).toBeGreaterThan(0);
 
+  const createController = new AbortController();
+  const createTimeout = setTimeout(
+    () => createController.abort(),
+    FETCH_TIMEOUT_MS,
+  );
+  const createResponse = await fetch(`${TEST_FHIR_BASE_URL}/Patient`, {
+    method: "POST",
+    headers: {
+      Accept: "application/fhir+json",
+      "Content-Type": "application/fhir+json",
+      "X-FHIR-Secret": TEST_FHIR_SECRET,
+    },
+    body: JSON.stringify({
+      resourceType: "Patient",
+      active: true,
+      name: [{ family: "PortalFlow", given: ["Test"] }],
+      gender: "unknown",
+    }),
+    signal: createController.signal,
+  }).finally(() => clearTimeout(createTimeout));
+  expect(createResponse.ok, "Failed to create test FHIR Patient").toBe(true);
+  const createdPatient = await createResponse.json();
+  const patientId = createdPatient?.id as string | undefined;
+  expect(patientId, "Created test FHIR Patient missing id").toBeTruthy();
+
+  // Verify it is retrievable through the gateway before linking.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  const response = await fetch(`${TEST_FHIR_BASE_URL}/Patient?_count=20`, {
+  const response = await fetch(`${TEST_FHIR_BASE_URL}/Patient/${patientId}`, {
     headers: {
       Accept: "application/fhir+json",
       "X-FHIR-Secret": TEST_FHIR_SECRET,
@@ -42,34 +67,12 @@ const getUnlinkedFhirPatientId = async (): Promise<string> => {
   expect(response.ok, "FHIR server unavailable or Patient query failed").toBe(
     true,
   );
-  const data = await response.json();
-  const ids: string[] = (data?.entry ?? [])
-    .map((entry: { resource?: { id?: string } }) => entry.resource?.id)
-    .filter((id: string | undefined): id is string => Boolean(id));
-  expect(
-    ids.length,
-    "No FHIR Patients found. Seed FHIR first.",
-  ).toBeGreaterThan(0);
-
-  const linkedUsers = await User.find(
-    { fhirPatientId: { $in: ids } },
-    { fhirPatientId: 1 },
-  ).lean();
-  const linkedIdSet = new Set(
-    linkedUsers
-      .map((u) => u.fhirPatientId)
-      .filter((id): id is string => Boolean(id)),
-  );
-  const unlinked = ids.find((id) => !linkedIdSet.has(id));
-  expect(
-    unlinked,
-    "No unlinked FHIR patient id available for portal flow test",
-  ).toBeTruthy();
-  return unlinked as string;
+  return patientId as string;
 };
 
 const runEmails: string[] = [];
 const createdAssignmentIds: string[] = [];
+const createdFhirPatientIds: string[] = [];
 const app = createApp();
 let admin!: TestIdentity;
 let practitioner!: TestIdentity;
@@ -90,13 +93,26 @@ afterAll(async () => {
   if (createdAssignmentIds.length > 0) {
     await Assignment.deleteMany({ _id: { $in: createdAssignmentIds } });
   }
+  for (const fhirPatientId of createdFhirPatientIds) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    await fetch(`${TEST_FHIR_BASE_URL}/Patient/${fhirPatientId}`, {
+      method: "DELETE",
+      headers: {
+        Accept: "application/fhir+json",
+        "X-FHIR-Secret": TEST_FHIR_SECRET,
+      },
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
+  }
   await cleanupUsersByEmail(runEmails);
   await mongoose.disconnect();
 });
 
 describe("Portal API flow", () => {
   it("covers user/auth routes + portal flow (excluding SSE)", async () => {
-    const fhirPatientId = await getUnlinkedFhirPatientId();
+    const fhirPatientId = await createPortalFlowPatient();
+    createdFhirPatientIds.push(fhirPatientId);
 
     // Hit auth/me route for all identities.
     const adminMe = await admin.agent.get("/api/auth/me");

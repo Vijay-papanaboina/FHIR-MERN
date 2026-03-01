@@ -2,6 +2,8 @@
 
 Express + TypeScript backend for FHIR MERN. It provides auth, role-based access control, assignment workflows, portal APIs, vitals APIs, and alerting/webhook/SSE support.
 
+This README is backend-specific. For repo-level setup/workflow, use the root `README.md`.
+
 ## Stack
 
 - Express 5
@@ -109,9 +111,21 @@ sequenceDiagram
 cp .env.example .env
 ```
 
-Required values are validated at startup (see `src/config/env.ts`), including Mongo URI, FHIR URL/credentials, frontend URL, and Better Auth settings.
+Required values are validated at startup (see `src/config/env.ts`), including Mongo URI, FHIR gateway URL + `FHIR_SECRET`, frontend URL, and Better Auth settings.
 
-### 2) Start backend
+### 2) Start local infrastructure (from repo root)
+
+```bash
+docker compose up -d
+```
+
+This starts:
+
+- MongoDB (`app-db`)
+- HAPI FHIR + Postgres
+- Nginx FHIR gateway at `http://localhost:8080/fhir`
+
+### 3) Start backend
 
 ```bash
 npm run dev
@@ -164,4 +178,11 @@ npx tsx scripts/seed-fhir.ts
 
 - Auth endpoints expect a valid `Origin` in local testing.
 - Webhook route supports optional shared-secret verification via `WEBHOOK_SECRET`.
+- FHIR access goes through the local gateway (`FHIR_BASE_URL`) and requires `FHIR_SECRET`.
+- Startup bootstraps Mongo and FHIR connectivity with retry loops before server listen.
 - SSE stream endpoint is `GET /api/alerts/stream`.
+
+## Troubleshooting
+
+- `401` from `FHIR_BASE_URL`: verify `FHIR_SECRET` matches the gateway secret.
+- Auth test failures with CORS/origin checks: verify `FRONTEND_URL` matches test `Origin`.
