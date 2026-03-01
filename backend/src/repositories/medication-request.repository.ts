@@ -23,6 +23,9 @@ export type MedicationRequestIntent =
 export interface CreateMedicationRequestInput {
   drugName: string;
   rxNormCode?: string;
+  dosageInstructions: string;
+  frequency: string;
+  startDate: string;
   status?: MedicationRequestStatus;
   intent?: MedicationRequestIntent;
 }
@@ -51,18 +54,31 @@ const buildMedicationRequestResource = (
   patientFhirId: string,
   practitionerFhirId: string,
   input: CreateMedicationRequestInput,
-): Record<string, unknown> => ({
-  resourceType: "MedicationRequest",
-  status: input.status ?? "active",
-  intent: input.intent ?? "order",
-  subject: {
-    reference: `Patient/${patientFhirId}`,
-  },
-  requester: {
-    reference: `Practitioner/${practitionerFhirId}`,
-  },
-  medicationCodeableConcept: buildMedicationCodeableConcept(input),
-});
+): Record<string, unknown> => {
+  const authoredOn = new Date(input.startDate);
+  const normalizedAuthoredOn = Number.isNaN(authoredOn.getTime())
+    ? new Date().toISOString()
+    : authoredOn.toISOString();
+
+  return {
+    resourceType: "MedicationRequest",
+    status: input.status ?? "active",
+    intent: input.intent ?? "order",
+    authoredOn: normalizedAuthoredOn,
+    subject: {
+      reference: `Patient/${patientFhirId}`,
+    },
+    requester: {
+      reference: `Practitioner/${practitionerFhirId}`,
+    },
+    medicationCodeableConcept: buildMedicationCodeableConcept(input),
+    dosageInstruction: [
+      {
+        text: `${input.dosageInstructions.trim()} | Frequency: ${input.frequency.trim()}`,
+      },
+    ],
+  };
+};
 
 export const createMedicationRequest = async (
   patientFhirId: string,

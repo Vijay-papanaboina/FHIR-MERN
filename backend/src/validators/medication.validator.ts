@@ -19,6 +19,23 @@ export const createMedicationSchema = z.object({
     .min(1, "rxNormCode cannot be empty")
     .max(64, "rxNormCode is too long")
     .optional(),
+  dosageInstructions: z
+    .string()
+    .trim()
+    .min(1, "dosageInstructions is required")
+    .max(512, "dosageInstructions is too long"),
+  frequency: z
+    .string()
+    .trim()
+    .min(1, "frequency is required")
+    .max(128, "frequency is too long"),
+  startDate: z
+    .string()
+    .trim()
+    .min(1, "startDate is required")
+    .refine((value) => !Number.isNaN(Date.parse(value)), {
+      message: "startDate must be a valid date",
+    }),
 });
 
 export const updateMedicationStatusSchema = z.object({

@@ -5,6 +5,7 @@ import { AppError } from "../utils/AppError.js";
 import { searchPatients, getPatient } from "../services/patient.service.js";
 import { getUserAssignments } from "../services/assignment.service.js";
 import { logger } from "../utils/logger.js";
+import type { AssignmentRole } from "../models/assignment.model.js";
 
 // ── Validation schemas ──────────────────────────────────────────
 const searchQuerySchema = z.object({
@@ -53,6 +54,41 @@ export const getPatientHandler = async (req: Request, res: Response) => {
 
   const patient = await getPatient(result.data.id);
   res.json(jsend.success(patient));
+};
+
+/**
+ * GET /api/patients/:id/assignment-role
+ * Get the current user's assignment role for a specific patient.
+ * Admins return "admin" since assignment checks are bypassed.
+ */
+export const getPatientAssignmentRoleHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  const result = idParamSchema.safeParse(req.params);
+  if (!result.success) {
+    throw new AppError(
+      result.error.issues[0]?.message ?? "Invalid Patient ID",
+      400,
+    );
+  }
+
+  if (!req.user?.role) {
+    throw new AppError("Authentication required", 401);
+  }
+
+  if (req.user.role === "admin") {
+    return res.json(jsend.success({ assignmentRole: "admin" as const }));
+  }
+
+  const assignmentRole = req.assignment?.assignmentRole as
+    | AssignmentRole
+    | undefined;
+  if (!assignmentRole) {
+    throw new AppError("Assignment role not found", 403);
+  }
+
+  return res.json(jsend.success({ assignmentRole }));
 };
 
 /**

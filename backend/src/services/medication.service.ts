@@ -163,6 +163,9 @@ export const prescribeMedication = async (
       ...(body.data.rxNormCode !== undefined
         ? { rxNormCode: body.data.rxNormCode }
         : {}),
+      dosageInstructions: body.data.dosageInstructions,
+      frequency: body.data.frequency,
+      startDate: body.data.startDate,
     },
   );
 

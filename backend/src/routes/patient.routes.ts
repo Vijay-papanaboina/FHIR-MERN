@@ -6,6 +6,7 @@ import {
   searchPatientsHandler,
   getPatientHandler,
   getAssignedPatientsHandler,
+  getPatientAssignmentRoleHandler,
 } from "../controllers/patient.controller.js";
 
 const router = Router();
@@ -31,6 +32,13 @@ router.get(
   requireRole("practitioner", "admin"),
   isAssignedToPatient(),
   getPatientHandler,
+);
+
+router.get(
+  "/:id/assignment-role",
+  requireRole("practitioner", "admin"),
+  isAssignedToPatient(),
+  getPatientAssignmentRoleHandler,
 );
 
 export default router;
