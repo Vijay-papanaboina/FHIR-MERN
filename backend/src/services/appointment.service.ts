@@ -5,7 +5,10 @@ import type {
   UpdateAppointmentDecisionInput,
 } from "@fhir-mern/shared";
 import type { AssignmentRole } from "../models/assignment.model.js";
-import { findActiveAssignment } from "../repositories/assignment.repository.js";
+import {
+  findActiveAssignment,
+  getAssignmentsByPatient,
+} from "../repositories/assignment.repository.js";
 import {
   createAppointment,
   getAppointmentById,
@@ -13,7 +16,14 @@ import {
   updateAppointment,
 } from "../repositories/appointment.repository.js";
 import { createResponseAndSyncAppointmentStatus } from "../repositories/appointment-response.repository.js";
-import { findUserById } from "../repositories/user.repository.js";
+import { Alert } from "../models/alert.model.js";
+import { User } from "../models/auth.model.js";
+import {
+  findUserByFhirPatientId,
+  findUserById,
+} from "../repositories/user.repository.js";
+import { sendToUsers, type SseEvent } from "./sse.manager.js";
+import { logger } from "../utils/logger.js";
 import { AppError } from "../utils/AppError.js";
 import {
   createAppointmentRequestSchema,
@@ -34,6 +44,12 @@ interface PortalAppointmentActor {
   patientFhirId: string;
   name?: string;
 }
+
+type AppointmentAlertType =
+  | "APPOINTMENT_REQUESTED"
+  | "APPOINTMENT_CONFIRMED"
+  | "APPOINTMENT_DECLINED"
+  | "APPOINTMENT_CANCELLED";
 
 const ensureFhirId = (value: string, label: string): string => {
   const parsed = fhirIdSchema.safeParse(String(value ?? "").trim());
@@ -232,6 +248,122 @@ const assertDecisionTransitionAllowed = (
   );
 };
 
+const normalizeActorName = (
+  actor: { name?: string; userId: string },
+  fallback: string,
+): string => {
+  const trimmed = actor.name?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : fallback;
+};
+
+const buildAlertRecipients = async (
+  patientFhirId: string,
+  includePatientUser: boolean,
+): Promise<string[]> => {
+  const [assignments, admins, patientUser] = await Promise.all([
+    getAssignmentsByPatient(patientFhirId, true),
+    User.find({ role: "admin" }, { _id: 1 }).lean(),
+    includePatientUser ? findUserByFhirPatientId(patientFhirId) : null,
+  ]);
+
+  const practitionerIds = assignments.map((assignment) =>
+    String(assignment.assignedUserId),
+  );
+  const adminIds = admins.map((admin) => String(admin._id));
+  const patientIds =
+    includePatientUser && patientUser ? [String(patientUser._id)] : [];
+
+  return [...new Set([...practitionerIds, ...adminIds, ...patientIds])];
+};
+
+const emitAppointmentAlert = async (params: {
+  patientFhirId: string;
+  appointment: Record<string, unknown>;
+  type: AppointmentAlertType;
+  actorName: string;
+  includePatientUser: boolean;
+  message: string;
+}): Promise<void> => {
+  const appointmentIdRaw = params.appointment["id"];
+  const appointmentId =
+    typeof appointmentIdRaw === "string" ? appointmentIdRaw.trim() : "";
+  if (!appointmentId) {
+    logger.warn("Skipping appointment alert due to missing appointment id", {
+      patientFhirId: params.patientFhirId,
+      type: params.type,
+    });
+    return;
+  }
+
+  const recipients = await buildAlertRecipients(
+    params.patientFhirId,
+    params.includePatientUser,
+  );
+  if (recipients.length === 0) {
+    logger.info("Appointment alert skipped: no recipients", {
+      appointmentId,
+      patientFhirId: params.patientFhirId,
+      type: params.type,
+    });
+    return;
+  }
+
+  const observationId = `appointment:${appointmentId}:${params.type.toLowerCase()}`;
+  const startRaw = params.appointment["start"];
+  const recordDate =
+    typeof startRaw === "string" && !Number.isNaN(new Date(startRaw).getTime())
+      ? new Date(startRaw)
+      : new Date();
+
+  let alertDoc;
+  try {
+    alertDoc = await Alert.create({
+      patientFhirId: params.patientFhirId,
+      observationId,
+      type: params.type,
+      message: params.message,
+      value: 0,
+      unit: "n/a",
+      severity: "warning",
+      sentToUserIds: recipients,
+      recordDate,
+    });
+  } catch (createErr: unknown) {
+    if (
+      createErr instanceof Error &&
+      "code" in createErr &&
+      (createErr as { code: number }).code === 11000
+    ) {
+      return;
+    }
+    throw createErr;
+  }
+
+  const event: SseEvent = {
+    event: "alert",
+    data: {
+      id: alertDoc._id,
+      patientFhirId: alertDoc.patientFhirId,
+      type: alertDoc.type,
+      message: alertDoc.message,
+      value: alertDoc.value,
+      unit: alertDoc.unit,
+      severity: alertDoc.severity,
+      recordDate: alertDoc.recordDate,
+      createdAt: alertDoc.createdAt,
+    },
+  };
+
+  sendToUsers(recipients, event);
+  logger.info("Appointment alert dispatched", {
+    appointmentId,
+    patientFhirId: params.patientFhirId,
+    type: params.type,
+    actorName: params.actorName,
+    recipients: recipients.length,
+  });
+};
+
 const applyDecision = async (
   appointmentId: string,
   participantReference: string,
@@ -292,7 +424,20 @@ export const createClinicalPatientAppointment = async (
 ): Promise<Record<string, unknown>> => {
   const normalizedPatientId = ensureFhirId(patientFhirId, "patientFhirId");
   await assertClinicalWriteAccess(actor, normalizedPatientId);
-  return createAppointmentForPatient(normalizedPatientId, input);
+  const appointment = await createAppointmentForPatient(
+    normalizedPatientId,
+    input,
+  );
+  const actorName = normalizeActorName(actor, `Practitioner/${actor.userId}`);
+  await emitAppointmentAlert({
+    patientFhirId: normalizedPatientId,
+    appointment,
+    type: "APPOINTMENT_REQUESTED",
+    actorName,
+    includePatientUser: false,
+    message: `Appointment requested by ${actorName}`,
+  });
+  return appointment;
 };
 
 export const getClinicalPatientAppointmentById = async (
@@ -332,7 +477,7 @@ export const decideClinicalPatientAppointment = async (
   const current = toLifecycleStatus(appointment);
   assertDecisionTransitionAllowed(current, parsed.data.status);
 
-  return applyDecision(
+  const updated = await applyDecision(
     normalizedAppointmentId,
     `Practitioner/${actor.userId}`,
     actor.name,
@@ -343,6 +488,24 @@ export const decideClinicalPatientAppointment = async (
         : {}),
     },
   );
+
+  const actorName = normalizeActorName(actor, `Practitioner/${actor.userId}`);
+  const type =
+    parsed.data.status === "confirmed"
+      ? "APPOINTMENT_CONFIRMED"
+      : parsed.data.status === "declined"
+        ? "APPOINTMENT_DECLINED"
+        : "APPOINTMENT_CANCELLED";
+  await emitAppointmentAlert({
+    patientFhirId: normalizedPatientId,
+    appointment: updated,
+    type,
+    actorName,
+    includePatientUser: true,
+    message: `Appointment ${parsed.data.status} by ${actorName}`,
+  });
+
+  return updated;
 };
 
 export const listPortalAppointments = async (
@@ -363,7 +526,20 @@ export const createPortalAppointment = async (
     actor.patientFhirId,
     "patientFhirId",
   );
-  return createAppointmentForPatient(normalizedPatientId, input);
+  const appointment = await createAppointmentForPatient(
+    normalizedPatientId,
+    input,
+  );
+  const actorName = normalizeActorName(actor, "Patient");
+  await emitAppointmentAlert({
+    patientFhirId: normalizedPatientId,
+    appointment,
+    type: "APPOINTMENT_REQUESTED",
+    actorName,
+    includePatientUser: false,
+    message: `Appointment requested by ${actorName}`,
+  });
+  return appointment;
 };
 
 export const cancelPortalAppointment = async (
@@ -382,7 +558,7 @@ export const cancelPortalAppointment = async (
   const current = toLifecycleStatus(appointment);
   assertDecisionTransitionAllowed(current, "cancelled");
 
-  return applyDecision(
+  const updated = await applyDecision(
     normalizedAppointmentId,
     `Patient/${normalizedPatientId}`,
     actor.name,
@@ -391,4 +567,16 @@ export const cancelPortalAppointment = async (
       ...(input.comment !== undefined ? { comment: input.comment } : {}),
     },
   );
+
+  const actorName = normalizeActorName(actor, "Patient");
+  await emitAppointmentAlert({
+    patientFhirId: normalizedPatientId,
+    appointment: updated,
+    type: "APPOINTMENT_CANCELLED",
+    actorName,
+    includePatientUser: false,
+    message: `Appointment cancelled by ${actorName}`,
+  });
+
+  return updated;
 };
