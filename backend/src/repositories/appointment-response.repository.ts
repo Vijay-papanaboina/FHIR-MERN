@@ -1,18 +1,15 @@
 import { fhirBaseUrl, fhirGet, fhirPost } from "./fhir.client.js";
+import type {
+  AppointmentParticipantStatus,
+  AppointmentStatus,
+  CreateAppointmentResponseInput,
+} from "@fhir-mern/shared";
 import {
   getAppointmentById,
-  type AppointmentParticipantStatus,
-  type AppointmentStatus,
   updateAppointment,
 } from "./appointment.repository.js";
 import { AppError } from "../utils/AppError.js";
 import { logger } from "../utils/logger.js";
-
-export interface CreateAppointmentResponseInput {
-  participantStatus: AppointmentParticipantStatus;
-  comment?: string;
-  actorDisplay?: string;
-}
 
 const APPOINTMENT_STATUS_SET: ReadonlySet<AppointmentStatus> = new Set([
   "proposed",

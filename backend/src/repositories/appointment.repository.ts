@@ -4,46 +4,13 @@ import {
   fhirPost,
   fhirPutWithHeaders,
 } from "./fhir.client.js";
+import type {
+  AppointmentParticipantStatus,
+  AppointmentStatus,
+  CreateAppointmentInput,
+  UpdateAppointmentInput,
+} from "@fhir-mern/shared";
 import { AppError } from "../utils/AppError.js";
-
-export type AppointmentStatus =
-  | "proposed"
-  | "pending"
-  | "booked"
-  | "arrived"
-  | "fulfilled"
-  | "cancelled"
-  | "noshow"
-  | "entered-in-error"
-  | "checked-in"
-  | "waitlist";
-
-export type AppointmentParticipantStatus =
-  | "accepted"
-  | "declined"
-  | "tentative"
-  | "needs-action";
-
-export interface CreateAppointmentInput {
-  start: string;
-  end: string;
-  description?: string;
-  comment?: string;
-  reason?: string;
-  status?: AppointmentStatus;
-  patientDisplay?: string;
-  practitionerDisplay?: string;
-  patientParticipantStatus?: AppointmentParticipantStatus;
-  practitionerParticipantStatus?: AppointmentParticipantStatus;
-}
-
-export interface UpdateAppointmentInput {
-  status?: AppointmentStatus;
-  description?: string;
-  comment?: string;
-  start?: string;
-  end?: string;
-}
 
 const APPOINTMENT_STATUS_SET: ReadonlySet<AppointmentStatus> = new Set([
   "proposed",
@@ -243,6 +210,13 @@ export const updateAppointment = async (
       ? { description: patch.description }
       : {}),
     ...(patch.comment !== undefined ? { comment: patch.comment } : {}),
+    ...(patch.cancellationReasonText?.trim()
+      ? {
+          cancelationReason: {
+            text: patch.cancellationReasonText.trim(),
+          },
+        }
+      : {}),
     ...(normalizedStart ? { start: normalizedStart } : {}),
     ...(normalizedEnd ? { end: normalizedEnd } : {}),
   };

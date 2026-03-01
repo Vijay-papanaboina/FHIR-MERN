@@ -16,6 +16,7 @@ import alertRoutes from "./routes/alert.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import portalRoutes from "./routes/portal.routes.js";
 import medicationRoutes from "./routes/medication.routes.js";
+import appointmentRoutes from "./routes/appointment.routes.js";
 
 export const createApp = () => {
   const app = express();
@@ -53,6 +54,7 @@ export const createApp = () => {
   app.use("/api/patients", patientRoutes);
   app.use("/api/patients/:id/vitals", vitalsRoutes);
   app.use("/api/patients/:patientFhirId/medications", medicationRoutes);
+  app.use("/api/patients/:patientFhirId/appointments", appointmentRoutes);
   app.use("/api/assignments", assignmentRoutes);
   app.use("/api/alerts", alertRoutes);
   app.use("/api/users", userRoutes);
