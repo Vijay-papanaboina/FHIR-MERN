@@ -10,6 +10,7 @@ const portalNav = [
   { label: "My Vitals", to: "/portal/vitals" },
   { label: "My Care Team", to: "/portal/care-team" },
   { label: "My Medications", to: "/portal/medications" },
+  { label: "My Appointments", to: "/portal/appointments" },
 ];
 
 export function PortalLayout() {
