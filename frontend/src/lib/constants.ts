@@ -35,20 +35,6 @@ export const VITAL_PRESETS = [
     example: "120",
   },
   {
-    code: "8462-4",
-    display: "Diastolic blood pressure",
-    unit: "mmHg",
-    unitCode: "mm[Hg]",
-    example: "80",
-  },
-  {
-    code: "9279-1",
-    display: "Respiratory rate",
-    unit: "breaths/minute",
-    unitCode: "/min",
-    example: "16",
-  },
-  {
     code: "59408-5",
     display: "Oxygen saturation",
     unit: "%",

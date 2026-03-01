@@ -2,13 +2,7 @@ import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router";
 import { useResolvedRole } from "@/hooks/use-resolved-role";
 import { getRoleHomePath, isPathAllowedForRole } from "@/lib/roles";
-
-/** Only allow paths that start with a single "/" and have no scheme */
-function isValidReturnTo(path: string): boolean {
-  return (
-    path.startsWith("/") && !path.startsWith("//") && !path.includes("://")
-  );
-}
+import { sanitizeReturnTo } from "@/lib/return-to";
 
 /**
  * Wrapper for public-only routes (login, register).
@@ -29,13 +23,9 @@ export function PublicOnlyRoute({ children }: { children: ReactNode }) {
 
   if (session) {
     const params = new URLSearchParams(location.search);
-    const returnTo = params.get("returnTo");
-    const decodedReturnTo =
-      returnTo && isValidReturnTo(decodeURIComponent(returnTo))
-        ? decodeURIComponent(returnTo)
-        : null;
+    const decodedReturnTo = sanitizeReturnTo(params.get("returnTo"));
     const target =
-      decodedReturnTo && role && isPathAllowedForRole(role, decodedReturnTo)
+      role && isPathAllowedForRole(role, decodedReturnTo)
         ? decodedReturnTo
         : role
           ? getRoleHomePath(role)

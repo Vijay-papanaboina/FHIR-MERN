@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import crypto from "node:crypto";
 import { env } from "../config/env.js";
 import { logger } from "../utils/logger.js";
+import { jsend } from "../utils/jsend.js";
 
 let warnedMissingSecret = false;
 
@@ -37,7 +38,7 @@ export const verifyWebhookSecret = (
     logger.warn(
       `Webhook auth failed from ${req.ip} — missing X-Webhook-Secret`,
     );
-    res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json(jsend.error("Unauthorized"));
     return;
   }
 
@@ -52,7 +53,7 @@ export const verifyWebhookSecret = (
     logger.warn(
       `Webhook auth failed from ${req.ip} — invalid X-Webhook-Secret`,
     );
-    res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json(jsend.error("Unauthorized"));
     return;
   }
 

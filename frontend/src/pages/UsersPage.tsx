@@ -223,7 +223,7 @@ export function UsersPage() {
                               : "Not linked"}
                           </Badge>
                         )}
-                        {draftRole === "patient" && !user.fhirPatientId && (
+                        {user.role === "patient" && !user.fhirPatientId && (
                           <div className="flex gap-2">
                             <Input
                               value={draftFhir}
