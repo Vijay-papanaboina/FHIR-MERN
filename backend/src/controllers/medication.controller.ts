@@ -11,6 +11,7 @@ import {
 const toMedicationActor = (req: Request) => {
   const userId = req.user?.id;
   const role = req.user?.role;
+  const name = req.user?.name;
 
   if (!userId || !role) {
     throw new AppError("Authentication required", 401);
@@ -20,7 +21,7 @@ const toMedicationActor = (req: Request) => {
     throw new AppError("Access denied.", 403);
   }
 
-  return { userId, role };
+  return { userId, role, ...(name ? { name } : {}) };
 };
 
 /**
