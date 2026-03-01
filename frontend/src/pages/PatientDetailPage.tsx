@@ -251,7 +251,9 @@ export function PatientDetailPage() {
           careTeamOptions={careTeamOptions}
           creating={createPatientAppointment.isPending}
           updating={decidePatientAppointment.isPending}
-          onCreate={(input) => createPatientAppointment.mutateAsync(input)}
+          onCreate={async (input) => {
+            await createPatientAppointment.mutateAsync(input);
+          }}
           onDecide={(appointmentId, input, options) => {
             decidePatientAppointment.mutate(
               { appointmentId, input },

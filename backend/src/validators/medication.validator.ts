@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { MedicationRequestStatus } from "../repositories/medication-request.repository.js";
+import type {
+  MedicationStatus,
+  UpdatableMedicationStatus as SharedUpdatableMedicationStatus,
+} from "@fhir-mern/shared";
 
 const FHIR_ID_REGEX = /^[A-Za-z0-9\-.]{1,64}$/;
 
@@ -48,5 +51,6 @@ export type CreateMedicationInput = z.infer<typeof createMedicationSchema>;
 export type UpdateMedicationStatusInput = z.infer<
   typeof updateMedicationStatusSchema
 >;
-export type UpdatableMedicationStatus = UpdateMedicationStatusInput["status"];
-export type AnyMedicationStatus = MedicationRequestStatus;
+export type UpdatableMedicationStatus = UpdateMedicationStatusInput["status"] &
+  SharedUpdatableMedicationStatus;
+export type AnyMedicationStatus = MedicationStatus;

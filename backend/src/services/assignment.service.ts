@@ -1,4 +1,5 @@
 import type { IAssignment } from "../models/assignment.model.js";
+import type { PractitionerSummaryDTO } from "@fhir-mern/shared";
 import { User } from "../models/auth.model.js";
 import {
   createAssignment,
@@ -112,16 +113,9 @@ export const getAllSystemAssignments = (
  * Get all practitioners in the system.
  * Used by admin UI to populate the assignment form dropdown.
  */
-export interface PractitionerSummary {
-  _id: string;
-  name: string;
-  email: string;
-  image?: string | null;
-}
-
-export const getPractitioners = (): Promise<PractitionerSummary[]> => {
+export const getPractitioners = (): Promise<PractitionerSummaryDTO[]> => {
   return User.find(
     { role: "practitioner" },
     { _id: 1, name: 1, email: 1, image: 1 },
-  ).lean<PractitionerSummary[]>();
+  ).lean<PractitionerSummaryDTO[]>();
 };

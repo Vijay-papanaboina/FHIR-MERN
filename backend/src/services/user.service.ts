@@ -1,4 +1,8 @@
-import type { UserRole } from "../repositories/user.repository.js";
+import type {
+  ListUsersResponse,
+  UserRole,
+  UserRowDTO,
+} from "@fhir-mern/shared";
 import {
   findUserByFhirPatientId,
   findUserById,
@@ -10,20 +14,8 @@ import { getPatient } from "./patient.service.js";
 import { AppError } from "../utils/AppError.js";
 import { logger } from "../utils/logger.js";
 
-export interface SafeUserDTO {
-  _id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  fhirPatientId: string | null;
-}
-
-export interface ListUsersDTO {
-  items: SafeUserDTO[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type SafeUserDTO = UserRowDTO;
+export type ListUsersDTO = ListUsersResponse;
 
 const toSafeUser = (user: {
   _id: string;

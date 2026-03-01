@@ -1,7 +1,8 @@
 import type { IUser } from "../models/auth.model.js";
 import { User } from "../models/auth.model.js";
+import type { UserRole } from "@fhir-mern/shared";
 
-export type UserRole = IUser["role"];
+export type { UserRole };
 
 export interface PractitionerLookup {
   _id: string;

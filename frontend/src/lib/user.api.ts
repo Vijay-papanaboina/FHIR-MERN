@@ -1,21 +1,14 @@
 import { apiGet, apiPatch } from "@/lib/api";
-
-export type UserRole = "patient" | "practitioner" | "admin";
-
-export interface UserRowDTO {
-  _id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  fhirPatientId: string | null;
-}
-
-export interface ListUsersResponse {
-  items: UserRowDTO[];
-  total: number;
-  page: number;
-  limit: number;
-}
+import type {
+  ListUsersResponse,
+  UserRole,
+  UserRowDTO,
+} from "@fhir-mern/shared";
+export type {
+  ListUsersResponse,
+  UserRole,
+  UserRowDTO,
+} from "@fhir-mern/shared";
 
 export function fetchUsers(params?: {
   q?: string;

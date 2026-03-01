@@ -1,6 +1,7 @@
 import type {
   CreateVitalInput,
   PatientDTO,
+  PortalCareTeamMemberDTO,
   VitalsDTO,
 } from "@fhir-mern/shared";
 import { getAssignmentsByPatient } from "../repositories/assignment.repository.js";
@@ -12,13 +13,6 @@ import {
   getPatientVitals,
 } from "./vitals.service.js";
 
-export interface CareTeamMemberDTO {
-  userId: string;
-  name: string;
-  image?: string;
-  assignmentRole: "primary" | "covering" | "consulting";
-}
-
 export const getPortalDemographics = (
   patientId: string,
 ): Promise<PatientDTO> => {
@@ -27,7 +21,7 @@ export const getPortalDemographics = (
 
 export const getPortalCareTeam = async (
   patientId: string,
-): Promise<CareTeamMemberDTO[]> => {
+): Promise<PortalCareTeamMemberDTO[]> => {
   const assignments = await getAssignmentsByPatient(patientId, true);
   const practitionerIds = [
     ...new Set(assignments.map((a) => a.assignedUserId)),
@@ -46,7 +40,7 @@ export const getPortalCareTeam = async (
         return null;
       }
 
-      const member: CareTeamMemberDTO = {
+      const member: PortalCareTeamMemberDTO = {
         userId: String(practitioner._id),
         name: practitioner.name,
         assignmentRole: assignment.assignmentRole,
@@ -56,7 +50,7 @@ export const getPortalCareTeam = async (
       }
       return member;
     })
-    .filter((m): m is CareTeamMemberDTO => !!m);
+    .filter((m): m is PortalCareTeamMemberDTO => !!m);
 };
 
 export const getPortalVitals = (patientId: string): Promise<VitalsDTO[]> => {

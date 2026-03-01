@@ -1,5 +1,12 @@
-import type { PatientDTO } from "@fhir-mern/shared";
+import type {
+  PatientAssignmentRoleResponse,
+  PatientDTO,
+} from "@fhir-mern/shared";
 import { apiGet } from "@/lib/api";
+export type {
+  PatientAssignmentRole,
+  PatientAssignmentRoleResponse,
+} from "@fhir-mern/shared";
 
 export function fetchPatients(name: string): Promise<PatientDTO[]> {
   const trimmed = name.trim();
@@ -19,18 +26,12 @@ export function fetchAssignedPatients(): Promise<PatientDTO[]> {
   return apiGet<PatientDTO[]>("/api/patients/assigned");
 }
 
-export type PatientAssignmentRole =
-  | "primary"
-  | "covering"
-  | "consulting"
-  | "admin";
-
 export function fetchPatientAssignmentRole(
   id: string,
-): Promise<{ assignmentRole: PatientAssignmentRole }> {
+): Promise<PatientAssignmentRoleResponse> {
   const trimmed = id.trim();
   if (!trimmed) return Promise.reject(new Error("Patient ID is required"));
-  return apiGet<{ assignmentRole: PatientAssignmentRole }>(
+  return apiGet<PatientAssignmentRoleResponse>(
     `/api/patients/${encodeURIComponent(trimmed)}/assignment-role`,
   );
 }

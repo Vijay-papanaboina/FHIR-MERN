@@ -17,7 +17,10 @@ const vitalsServiceMocks = vi.hoisted(() => ({
   createPatientReportedVital: vi.fn(),
 }));
 
-vi.mock("../../src/repositories/assignment.repository.js", () => assignmentRepoMocks);
+vi.mock(
+  "../../src/repositories/assignment.repository.js",
+  () => assignmentRepoMocks,
+);
 vi.mock("../../src/repositories/user.repository.js", () => userRepoMocks);
 vi.mock("../../src/services/patient.service.js", () => patientServiceMocks);
 vi.mock("../../src/services/vitals.service.js", () => vitalsServiceMocks);
@@ -58,11 +61,18 @@ describe("portal.service", () => {
 
     const out = await getPortalCareTeam("p1");
 
-    expect(assignmentRepoMocks.getAssignmentsByPatient).toHaveBeenCalledWith("p1", true);
-    expect(userRepoMocks.findPractitionersByIds).toHaveBeenCalledWith(["u2", "u1", "u3"]);
+    expect(assignmentRepoMocks.getAssignmentsByPatient).toHaveBeenCalledWith(
+      "p1",
+      true,
+    );
+    expect(userRepoMocks.findPractitionersByIds).toHaveBeenCalledWith([
+      "u2",
+      "u1",
+      "u3",
+    ]);
     expect(out).toEqual([
-      { name: "Dr B", assignmentRole: "covering" },
-      { name: "Dr A", assignmentRole: "primary", image: "a.png" },
+      { userId: "u2", name: "Dr B", assignmentRole: "covering" },
+      { userId: "u1", name: "Dr A", assignmentRole: "primary", image: "a.png" },
     ]);
   });
 
@@ -78,7 +88,9 @@ describe("portal.service", () => {
 
   it("delegates vitals submit to vitals service", async () => {
     const createdVital = { id: "v2" };
-    vitalsServiceMocks.createPatientReportedVital.mockResolvedValue(createdVital);
+    vitalsServiceMocks.createPatientReportedVital.mockResolvedValue(
+      createdVital,
+    );
     const payload = {
       code: "8867-4",
       display: "Heart rate",

@@ -5,7 +5,7 @@ import { AppError } from "../utils/AppError.js";
 import { searchPatients, getPatient } from "../services/patient.service.js";
 import { getUserAssignments } from "../services/assignment.service.js";
 import { logger } from "../utils/logger.js";
-import type { AssignmentRole } from "../models/assignment.model.js";
+import type { AssignmentRole, PatientAssignmentRole } from "@fhir-mern/shared";
 
 // ── Validation schemas ──────────────────────────────────────────
 const searchQuerySchema = z.object({
@@ -88,7 +88,9 @@ export const getPatientAssignmentRoleHandler = async (
     throw new AppError("Assignment role not found", 403);
   }
 
-  return res.json(jsend.success({ assignmentRole }));
+  return res.json(
+    jsend.success({ assignmentRole: assignmentRole as PatientAssignmentRole }),
+  );
 };
 
 /**

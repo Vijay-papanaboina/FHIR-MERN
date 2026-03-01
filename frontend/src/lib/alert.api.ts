@@ -1,34 +1,15 @@
 import { apiGet, apiPost } from "@/lib/api";
-
-export type AlertSeverity = "warning" | "critical";
-
-export interface AlertItem {
-  _id: string;
-  patientFhirId: string;
-  observationId: string;
-  type: string;
-  message: string;
-  value: number;
-  unit: string;
-  severity: AlertSeverity;
-  sentToUserIds: string[];
-  acknowledgedBy: string[];
-  recordDate: string;
-  createdAt: string;
-}
-
-export interface AlertListResponse {
-  items: AlertItem[];
-  total: number;
-  page: number;
-  limit: number;
-  unacknowledgedCount?: number;
-}
-
-export interface AlertSummaryResponse {
-  unacknowledgedCount: number;
-  windowHours: number;
-}
+import type {
+  AlertItem,
+  AlertListResponse,
+  AlertSummaryResponse,
+} from "@fhir-mern/shared";
+export type {
+  AlertItem,
+  AlertListResponse,
+  AlertSeverity,
+  AlertSummaryResponse,
+} from "@fhir-mern/shared";
 
 export function fetchAlerts(
   page = 1,

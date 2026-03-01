@@ -5,16 +5,11 @@ import {
   fhirPutWithHeaders,
 } from "./fhir.client.js";
 import { AppError } from "../utils/AppError.js";
-
-export type MedicationRequestStatus =
-  | "active"
-  | "on-hold"
-  | "cancelled"
-  | "completed"
-  | "entered-in-error"
-  | "stopped"
-  | "draft"
-  | "unknown";
+import type {
+  CreateMedicationInput,
+  MedicationStatus as MedicationRequestStatus,
+} from "@fhir-mern/shared";
+export type { MedicationRequestStatus };
 
 export type MedicationRequestIntent =
   | "proposal"
@@ -26,12 +21,7 @@ export type MedicationRequestIntent =
   | "instance-order"
   | "option";
 
-export interface CreateMedicationRequestInput {
-  drugName: string;
-  rxNormCode?: string;
-  dosageInstructions: string;
-  frequency: string;
-  startDate: string;
+export interface CreateMedicationRequestInput extends CreateMedicationInput {
   requesterDisplay?: string;
   requesterReference?: string;
   status?: MedicationRequestStatus;

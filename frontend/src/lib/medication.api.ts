@@ -1,36 +1,16 @@
 import { apiGet, apiPatch, apiPost } from "@/lib/api";
-
-export type MedicationStatus =
-  | "active"
-  | "on-hold"
-  | "cancelled"
-  | "completed"
-  | "entered-in-error"
-  | "stopped"
-  | "draft"
-  | "unknown";
-
-export type UpdatableMedicationStatus = "completed" | "stopped";
-
-export interface MedicationDTO {
-  readonly id: string;
-  readonly drugName: string;
-  readonly rxNormCode: string | null;
-  readonly dosageInstructions: string | null;
-  readonly frequency: string | null;
-  readonly prescriber: string | null;
-  readonly prescriberReference: string | null;
-  readonly startDate: string | null;
-  readonly status: MedicationStatus;
-}
-
-export interface CreateMedicationInput {
-  drugName: string;
-  rxNormCode?: string;
-  dosageInstructions: string;
-  frequency: string;
-  startDate: string;
-}
+import type {
+  CreateMedicationInput,
+  MedicationDTO,
+  MedicationStatus,
+  UpdatableMedicationStatus,
+} from "@fhir-mern/shared";
+export type {
+  CreateMedicationInput,
+  MedicationDTO,
+  MedicationStatus,
+  UpdatableMedicationStatus,
+} from "@fhir-mern/shared";
 
 interface FhirBundleEntry {
   resource?: unknown;

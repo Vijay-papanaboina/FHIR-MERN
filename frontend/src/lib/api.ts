@@ -1,3 +1,5 @@
+import type { JSendResponse } from "@fhir-mern/shared";
+
 /**
  * Thin wrapper around fetch for our backend API calls.
  * - Prepends the backend base URL.
@@ -11,25 +13,7 @@ const API_BASE = (
 
 const REQUEST_TIMEOUT_MS = 15_000;
 
-/** Shape of a JSend success response */
-export interface JSendSuccess<T> {
-  status: "success";
-  data: T;
-}
-
-/** Shape of a JSend fail response */
-export interface JSendFail {
-  status: "fail";
-  data: { message: string };
-}
-
-/** Shape of a JSend error response */
-export interface JSendError {
-  status: "error";
-  message: string;
-}
-
-type JSendResponse<T> = JSendSuccess<T> | JSendFail | JSendError;
+export type { JSendError, JSendFail, JSendSuccess } from "@fhir-mern/shared";
 
 /**
  * Custom error class for API failures.
@@ -83,7 +67,7 @@ async function parseJSend<T>(res: Response): Promise<T> {
     );
   }
 
-  let json: JSendResponse<T>;
+  let json: JSendResponse<T, { message: string }>;
   try {
     json = await res.json();
   } catch {

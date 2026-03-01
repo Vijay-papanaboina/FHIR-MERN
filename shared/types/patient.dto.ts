@@ -16,3 +16,13 @@ export interface PatientDTO {
   /** @see AdministrativeGender */
   readonly gender: AdministrativeGender;
 }
+
+export type PatientAssignmentRole =
+  | "primary"
+  | "covering"
+  | "consulting"
+  | "admin";
+
+export interface PatientAssignmentRoleResponse {
+  assignmentRole: PatientAssignmentRole;
+}
