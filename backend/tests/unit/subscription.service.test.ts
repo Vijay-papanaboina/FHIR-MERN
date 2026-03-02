@@ -49,10 +49,13 @@ describe("subscription.service", () => {
 
     await registerFhirSubscription();
 
-    expect(fhirClientMocks.fhirPut).toHaveBeenCalledTimes(1);
-    const [url, payload] = fhirClientMocks.fhirPut.mock.calls[0]!;
-    expect(String(url)).toMatch(/\/Subscription\/backend-observation-sub$/);
-    expect(payload.channel.header).toEqual(["X-Webhook-Secret: 1234567890abcdef"]);
+    expect(fhirClientMocks.fhirPut).toHaveBeenCalledTimes(3);
+    for (const [url, payload] of fhirClientMocks.fhirPut.mock.calls) {
+      expect(String(url)).toMatch(/\/Subscription\/backend-.+$/);
+      expect(payload.channel.header).toEqual([
+        "X-Webhook-Secret: 1234567890abcdef",
+      ]);
+    }
   });
 
   it("registers subscription without webhook header when secret is missing", async () => {
@@ -61,9 +64,10 @@ describe("subscription.service", () => {
 
     await registerFhirSubscription();
 
-    expect(fhirClientMocks.fhirPut).toHaveBeenCalledTimes(1);
-    const [, payload] = fhirClientMocks.fhirPut.mock.calls[0]!;
-    expect(payload.channel.header).toBeUndefined();
+    expect(fhirClientMocks.fhirPut).toHaveBeenCalledTimes(3);
+    for (const [, payload] of fhirClientMocks.fhirPut.mock.calls) {
+      expect(payload.channel.header).toBeUndefined();
+    }
   });
 
   it("logs and swallows registration errors", async () => {
