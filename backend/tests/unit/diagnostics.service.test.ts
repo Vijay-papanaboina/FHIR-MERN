@@ -34,6 +34,7 @@ import {
   listPatientDiagnosticResults,
   listPatientDiagnostics,
   listPortalDiagnostics,
+  listPortalDiagnosticResults,
 } from "../../src/services/diagnostics.service.js";
 
 describe("diagnostics.service", () => {
@@ -162,5 +163,21 @@ describe("diagnostics.service", () => {
     ).toHaveBeenCalledWith(patientFhirId, {
       statuses: ["final", "amended", "corrected"],
     });
+  });
+
+  it("rejects portal diagnostic results for non-final report statuses", async () => {
+    diagnosticReportRepoMocks.getDiagnosticReportById.mockResolvedValue({
+      id: "report-prelim",
+      status: "preliminary",
+      subject: { reference: `Patient/${patientFhirId}` },
+      result: [{ reference: "Observation/obs-1" }],
+    });
+
+    await expect(
+      listPortalDiagnosticResults(patientFhirId, "report-prelim"),
+    ).rejects.toMatchObject<AppError>({ statusCode: 404 });
+    expect(
+      diagnosticObservationRepoMocks.getDiagnosticObservationsByIds,
+    ).not.toHaveBeenCalled();
   });
 });

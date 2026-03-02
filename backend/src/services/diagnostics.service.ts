@@ -171,6 +171,15 @@ export const listPortalDiagnosticResults = async (
   );
   const report = await getDiagnosticReportById(normalizedDiagnosticReportId);
   assertReportOwnership(report, normalizedPatientId);
+  const reportStatus =
+    typeof report["status"] === "string"
+      ? report["status"].trim().toLowerCase()
+      : "";
+  if (
+    !PORTAL_VISIBLE_REPORT_STATUSES.some((status) => status === reportStatus)
+  ) {
+    throw new AppError("DiagnosticReport not available in patient portal", 404);
+  }
 
   const observationIds = extractObservationIdsFromReport(report);
   const observations = await getDiagnosticObservationsByIds(observationIds);

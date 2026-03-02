@@ -43,7 +43,9 @@ const getPatientIdFromSubject = (
   return parsePatientIdFromReference(reference);
 };
 
-const getResourceDate = (resource: Record<string, unknown>): Date => {
+const getResourceDate = (
+  resource: Record<string, unknown>,
+): Date | undefined => {
   const candidates = [
     resource["effectiveDateTime"],
     resource["issued"],
@@ -58,7 +60,7 @@ const getResourceDate = (resource: Record<string, unknown>): Date => {
     if (!Number.isNaN(parsed.getTime())) return parsed;
   }
 
-  return new Date();
+  return undefined;
 };
 
 const hasCategoryCode = (
@@ -248,6 +250,13 @@ const handleDiagnosticObservation = async (
 
   const recipientIds = await resolveRecipients(patientFhirId, true);
   if (recipientIds.length === 0) return;
+  const recordDate = getResourceDate(observation);
+  if (!recordDate) {
+    logger.warn(
+      `Diagnostic observation ${observationId} has no valid timestamp, skipping alert`,
+    );
+    return;
+  }
 
   await createAndDispatchAlert(
     {
@@ -258,7 +267,7 @@ const handleDiagnosticObservation = async (
       value: Number.isFinite(valueAsNumber) ? valueAsNumber : 0,
       unit,
       severity: "warning",
-      recordDate: getResourceDate(observation),
+      recordDate,
     },
     recipientIds,
   );
@@ -280,6 +289,13 @@ const handleDiagnosticReport = async (
 
   const recipientIds = await resolveRecipients(patientFhirId, true);
   if (recipientIds.length === 0) return;
+  const recordDate = getResourceDate(report);
+  if (!recordDate) {
+    logger.warn(
+      `Diagnostic report ${reportId} has no valid timestamp, skipping alert`,
+    );
+    return;
+  }
 
   await createAndDispatchAlert(
     {
@@ -290,7 +306,7 @@ const handleDiagnosticReport = async (
       value: 0,
       unit: "n/a",
       severity: "warning",
-      recordDate: getResourceDate(report),
+      recordDate,
     },
     recipientIds,
   );

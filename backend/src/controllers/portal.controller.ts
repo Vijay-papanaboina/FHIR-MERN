@@ -139,7 +139,10 @@ export const getMyDiagnosticResults = async (req: Request, res: Response) => {
     throw new AppError("Account not yet linked to a patient record", 403);
   }
 
-  const reportId = String(req.params.id ?? "");
+  const reportId = String(req.params.id ?? "").trim();
+  if (!reportId) {
+    throw new AppError("reportId is required", 400);
+  }
   const results = await getPortalDiagnosticResults(patientId, reportId);
   res.json(jsend.success(results));
 };

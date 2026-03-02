@@ -66,8 +66,11 @@ interface ObservationResource {
 
 const BASE_PATH = "/api/patients";
 
-const asStringOrNull = (value: unknown): string | null =>
-  typeof value === "string" && value.trim().length > 0 ? value : null;
+const asStringOrNull = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
 
 const getConceptDisplay = (
   concept: FhirCodeableConcept | undefined,

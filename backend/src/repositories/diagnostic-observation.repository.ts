@@ -2,8 +2,12 @@ import { AppError } from "../utils/AppError.js";
 import { fhirBaseUrl, fhirGet } from "./fhir.client.js";
 
 export const getDiagnosticObservationById = async (
-  id: string,
+  id: string | null | undefined,
 ): Promise<Record<string, unknown>> => {
+  if (id == null) {
+    throw new AppError("observationId is required", 400);
+  }
+
   const trimmedId = id.trim();
   if (!trimmedId) {
     throw new AppError("observationId is required", 400);
