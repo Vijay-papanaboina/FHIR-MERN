@@ -26,7 +26,7 @@ export const getFhirHeaders = (
 export const fhirBaseUrl = (): string => env.FHIR_BASE_URL.replace(/\/+$/, "");
 
 interface FhirFetchOptions {
-  method?: "GET" | "POST" | "PUT";
+  method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: Record<string, unknown>;
   headers?: Record<string, string>;
 }
@@ -68,8 +68,17 @@ const fhirFetch = async (
       );
     }
 
+    if (response.status === 204) {
+      return {};
+    }
+
+    const responseText = await response.text();
+    if (!responseText.trim()) {
+      return {};
+    }
+
     try {
-      return (await response.json()) as Record<string, unknown>;
+      return JSON.parse(responseText) as Record<string, unknown>;
     } catch {
       throw new AppError("FHIR server returned malformed JSON", 502);
     }
@@ -95,6 +104,9 @@ export const fhirPost = (url: string, body: Record<string, unknown>) =>
 /** PUT a FHIR resource (create or update). */
 export const fhirPut = (url: string, body: Record<string, unknown>) =>
   fhirFetch(url, { method: "PUT", body });
+
+/** DELETE a FHIR resource. */
+export const fhirDelete = (url: string) => fhirFetch(url, { method: "DELETE" });
 
 export const fhirPutWithHeaders = (
   url: string,
