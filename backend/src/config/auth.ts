@@ -5,8 +5,16 @@ import { env } from "./env.js";
 import { logger } from "../utils/logger.js";
 
 // Named function so TypeScript infers the full return type (including additionalFields).
-// auth.$Infer.Session will correctly include `role` and `fhirPatientId`.
+// auth.$Infer.Session will correctly include role and linked FHIR ids.
 function createAuth() {
+  const isTest = env.NODE_ENV === "test";
+  const isProduction = env.NODE_ENV === "production";
+  const rateLimitEnabled =
+    env.BETTER_AUTH_RATE_LIMIT_ENABLED ?? (isTest ? false : true);
+  const rateLimitWindow = env.BETTER_AUTH_RATE_LIMIT_WINDOW ?? 60;
+  const rateLimitMax =
+    env.BETTER_AUTH_RATE_LIMIT_MAX ?? (isProduction ? 60 : 300);
+
   return betterAuth({
     secret: env.BETTER_AUTH_SECRET,
     trustedOrigins: [env.FRONTEND_URL],
@@ -27,6 +35,11 @@ function createAuth() {
         trustedProviders: ["google", "email-password"],
       },
     },
+    rateLimit: {
+      enabled: rateLimitEnabled,
+      window: rateLimitWindow,
+      max: rateLimitMax,
+    },
     user: {
       additionalFields: {
         role: {
@@ -36,6 +49,12 @@ function createAuth() {
           input: false,
         },
         fhirPatientId: {
+          type: "string",
+          required: false,
+          defaultValue: null,
+          input: false,
+        },
+        fhirPractitionerId: {
           type: "string",
           required: false,
           defaultValue: null,

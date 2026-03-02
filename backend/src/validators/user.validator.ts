@@ -12,6 +12,17 @@ export const linkPatientSchema = z.object({
 export type LinkPatientInput = z.infer<typeof linkPatientSchema>;
 
 /**
+ * Zod schema for linking a practitioner user to a FHIR Practitioner record.
+ */
+export const linkPractitionerSchema = z.object({
+  fhirPractitionerId: z
+    .string()
+    .regex(/^[A-Za-z0-9\-.]{1,64}$/, "Invalid FHIR Practitioner ID format"),
+});
+
+export type LinkPractitionerInput = z.infer<typeof linkPractitionerSchema>;
+
+/**
  * Zod schema for updating a user's system role.
  */
 export const updateUserRoleSchema = z.object({

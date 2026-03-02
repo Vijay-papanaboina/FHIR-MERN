@@ -1,28 +1,14 @@
 import { apiDelete, apiGet, apiPost } from "@/lib/api";
-
-export interface AssignmentDTO {
-  _id: string;
-  patientFhirId: string;
-  assignedUserId: string;
-  assignedByUserId: string;
-  assignmentRole: "primary" | "covering" | "consulting";
-  active: boolean;
-  assignedAt: string;
-  deactivatedAt?: string | null;
-}
-
-export interface CreateAssignmentInput {
-  patientFhirId: string;
-  assignedUserId: string;
-  assignmentRole: "primary" | "covering" | "consulting";
-}
-
-export interface PractitionerSummaryDTO {
-  _id: string;
-  name: string;
-  email: string;
-  image?: string | null;
-}
+import type {
+  AssignmentDTO,
+  CreateAssignmentInput,
+  PractitionerSummaryDTO,
+} from "@fhir-mern/shared";
+export type {
+  AssignmentDTO,
+  CreateAssignmentInput,
+  PractitionerSummaryDTO,
+} from "@fhir-mern/shared";
 
 export function fetchAssignmentsByPatient(
   patientFhirId: string,

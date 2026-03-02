@@ -4,10 +4,12 @@ import { AppError } from "../utils/AppError.js";
 import { jsend } from "../utils/jsend.js";
 import {
   changeUserRole,
+  linkPractitionerToUser,
   linkPatientToUser,
   listSafeUsers,
 } from "../services/user.service.js";
 import {
+  linkPractitionerSchema,
   linkPatientSchema,
   updateUserRoleSchema,
 } from "../validators/user.validator.js";
@@ -67,6 +69,34 @@ export const linkPatientHandler = async (req: Request, res: Response) => {
   const user = await linkPatientToUser(
     paramResult.data.userId,
     bodyResult.data.fhirPatientId,
+  );
+  res.json(jsend.success(user));
+};
+
+/**
+ * PATCH /api/users/:userId/link-practitioner
+ * Link a practitioner user account to a FHIR Practitioner record.
+ */
+export const linkPractitionerHandler = async (req: Request, res: Response) => {
+  const paramResult = userIdParamSchema.safeParse(req.params);
+  if (!paramResult.success) {
+    throw new AppError(
+      paramResult.error.issues[0]?.message ?? "Invalid userId",
+      400,
+    );
+  }
+
+  const bodyResult = linkPractitionerSchema.safeParse(req.body);
+  if (!bodyResult.success) {
+    throw new AppError(
+      bodyResult.error.issues[0]?.message ?? "Invalid request body",
+      400,
+    );
+  }
+
+  const user = await linkPractitionerToUser(
+    paramResult.data.userId,
+    bodyResult.data.fhirPractitionerId,
   );
   res.json(jsend.success(user));
 };

@@ -1,6 +1,7 @@
 import mongoose, { Schema, model, Document } from "mongoose";
+import type { AssignmentRole } from "@fhir-mern/shared";
 
-export type AssignmentRole = "primary" | "covering" | "consulting";
+export type { AssignmentRole };
 
 export interface IAssignment extends Document<string> {
   _id: string;

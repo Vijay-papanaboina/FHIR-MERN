@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchUsers,
+  linkUserPractitioner,
   linkUserPatient,
   updateUserRole,
   type UserRole,
@@ -48,6 +49,22 @@ export function useLinkUserPatient() {
       userId: string;
       fhirPatientId: string;
     }) => linkUserPatient(userId, fhirPatientId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
+export function useLinkUserPractitioner() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      userId,
+      fhirPractitionerId,
+    }: {
+      userId: string;
+      fhirPractitionerId: string;
+    }) => linkUserPractitioner(userId, fhirPractitionerId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["users"] });
     },

@@ -1,3 +1,10 @@
+import type {
+  JSendError as ErrorResponse,
+  JSendFail as FailResponse,
+  JSendResponse,
+  JSendSuccess as SuccessResponse,
+} from "@fhir-mern/shared";
+
 /**
  * JSend response helpers.
  *
@@ -9,25 +16,7 @@
  *   res.status(500).json(jsend.error('Internal Server Error'));
  */
 
-export interface SuccessResponse<T> {
-  status: "success";
-  data: T;
-}
-
-export interface FailResponse<T> {
-  status: "fail";
-  data: T;
-}
-
-export interface ErrorResponse {
-  status: "error";
-  message: string;
-}
-
-export type JSendResponse<T> =
-  | SuccessResponse<T>
-  | FailResponse<T>
-  | ErrorResponse;
+export type { SuccessResponse, FailResponse, ErrorResponse, JSendResponse };
 
 export const jsend = {
   /**

@@ -33,8 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-type AssignmentRole = "primary" | "covering" | "consulting";
+import type { AssignmentRole } from "@fhir-mern/shared";
 
 export function AssignmentsPage() {
   const [patientSearch, setPatientSearch] = useState("");

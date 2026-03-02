@@ -1,7 +1,8 @@
 import type { IUser } from "../models/auth.model.js";
 import { User } from "../models/auth.model.js";
+import type { UserRole } from "@fhir-mern/shared";
 
-export type UserRole = IUser["role"];
+export type { UserRole };
 
 export interface PractitionerLookup {
   _id: string;
@@ -15,12 +16,17 @@ export const findUserById = (userId: string) => User.findById(userId);
 export const findUserByFhirPatientId = (fhirPatientId: string) =>
   User.findOne({ fhirPatientId });
 
+export const findUserByFhirPractitionerId = (fhirPractitionerId: string) =>
+  User.findOne({ fhirPractitionerId });
+
 export const updateUserRoleById = (userId: string, role: UserRole) =>
   User.findByIdAndUpdate(userId, { role }, { returnDocument: "after" });
 
 export const updateUserFieldsById = (
   userId: string,
-  updates: Partial<Pick<IUser, "role" | "fhirPatientId">>,
+  updates: Partial<
+    Pick<IUser, "role" | "fhirPatientId" | "fhirPractitionerId">
+  >,
 ) => User.findByIdAndUpdate(userId, updates, { returnDocument: "after" });
 
 export const updateUserFhirPatientIdById = (
@@ -30,6 +36,16 @@ export const updateUserFhirPatientIdById = (
   User.findByIdAndUpdate(
     userId,
     { fhirPatientId },
+    { returnDocument: "after" },
+  );
+
+export const updateUserFhirPractitionerIdById = (
+  userId: string,
+  fhirPractitionerId: string,
+) =>
+  User.findByIdAndUpdate(
+    userId,
+    { fhirPractitionerId },
     { returnDocument: "after" },
   );
 
@@ -46,6 +62,7 @@ export interface ListUsersResult {
     email: string;
     role: UserRole;
     fhirPatientId?: string | null;
+    fhirPractitionerId?: string | null;
     image?: string;
   }>;
   total: number;
@@ -81,6 +98,7 @@ export const listUsers = async (
       email: 1,
       role: 1,
       fhirPatientId: 1,
+      fhirPractitionerId: 1,
       image: 1,
     })
       .sort({ createdAt: -1 })

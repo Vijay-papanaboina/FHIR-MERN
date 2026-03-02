@@ -1,21 +1,14 @@
 import { apiGet, apiPatch } from "@/lib/api";
-
-export type UserRole = "patient" | "practitioner" | "admin";
-
-export interface UserRowDTO {
-  _id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  fhirPatientId: string | null;
-}
-
-export interface ListUsersResponse {
-  items: UserRowDTO[];
-  total: number;
-  page: number;
-  limit: number;
-}
+import type {
+  ListUsersResponse,
+  UserRole,
+  UserRowDTO,
+} from "@fhir-mern/shared";
+export type {
+  ListUsersResponse,
+  UserRole,
+  UserRowDTO,
+} from "@fhir-mern/shared";
 
 export function fetchUsers(params?: {
   q?: string;
@@ -59,6 +52,23 @@ export function linkUserPatient(
     `/api/users/${encodeURIComponent(trimmedUserId)}/link-patient`,
     {
       fhirPatientId: trimmedPatientId,
+    },
+  );
+}
+
+export function linkUserPractitioner(
+  userId: string,
+  fhirPractitionerId: string,
+): Promise<UserRowDTO> {
+  const trimmedUserId = userId.trim();
+  const trimmedPractitionerId = fhirPractitionerId.trim();
+  if (!trimmedUserId) return Promise.reject(new Error("User ID is required"));
+  if (!trimmedPractitionerId)
+    return Promise.reject(new Error("FHIR Practitioner ID is required"));
+  return apiPatch<UserRowDTO>(
+    `/api/users/${encodeURIComponent(trimmedUserId)}/link-practitioner`,
+    {
+      fhirPractitionerId: trimmedPractitionerId,
     },
   );
 }

@@ -1,36 +1,16 @@
 import { apiGet, apiPatch, apiPost } from "@/lib/api";
-
-export type MedicationStatus =
-  | "active"
-  | "on-hold"
-  | "cancelled"
-  | "completed"
-  | "entered-in-error"
-  | "stopped"
-  | "draft"
-  | "unknown";
-
-export type UpdatableMedicationStatus = "completed" | "stopped";
-
-export interface MedicationDTO {
-  readonly id: string;
-  readonly drugName: string;
-  readonly rxNormCode: string | null;
-  readonly dosageInstructions: string | null;
-  readonly frequency: string | null;
-  readonly prescriber: string | null;
-  readonly prescriberReference: string | null;
-  readonly startDate: string | null;
-  readonly status: MedicationStatus;
-}
-
-export interface CreateMedicationInput {
-  drugName: string;
-  rxNormCode?: string;
-  dosageInstructions: string;
-  frequency: string;
-  startDate: string;
-}
+import type {
+  CreateMedicationInput,
+  MedicationDTO,
+  MedicationStatus,
+  UpdatableMedicationStatus,
+} from "@fhir-mern/shared";
+export type {
+  CreateMedicationInput,
+  MedicationDTO,
+  MedicationStatus,
+  UpdatableMedicationStatus,
+} from "@fhir-mern/shared";
 
 interface FhirBundleEntry {
   resource?: unknown;
@@ -127,7 +107,7 @@ export function mapMedicationRequest(
   const { dosageInstructions, frequency } = extractDosageAndFrequency(resource);
   const id = asStringOrNull(resource.id);
   if (!id) {
-    console.warn("Skipping MedicationRequest without id", resource);
+    console.warn("Skipping MedicationRequest without id");
     return null;
   }
 
@@ -210,10 +190,10 @@ export async function createPatientMedication(
   if (!trimmedPatientId) {
     return Promise.reject(new Error("Patient ID is required"));
   }
-  const drugName = input.drugName.trim();
-  const dosageInstructions = input.dosageInstructions.trim();
-  const frequency = input.frequency.trim();
-  const startDate = input.startDate.trim();
+  const drugName = input.drugName?.trim() ?? "";
+  const dosageInstructions = input.dosageInstructions?.trim() ?? "";
+  const frequency = input.frequency?.trim() ?? "";
+  const startDate = input.startDate?.trim() ?? "";
   if (!drugName) {
     return Promise.reject(new Error("drugName is required"));
   }

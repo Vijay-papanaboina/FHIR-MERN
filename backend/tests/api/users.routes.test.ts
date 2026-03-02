@@ -18,9 +18,13 @@ describe("User routes", () => {
   let adminUserId = "";
   let normalUserId = "";
   let linkedPatientUserId = "";
+  let practitionerUserId = "";
+  let linkedPractitionerUserId = "";
   let admin!: TestIdentity;
   let normal!: TestIdentity;
   let linkedPatient!: TestIdentity;
+  let practitioner!: TestIdentity;
+  let linkedPractitioner!: TestIdentity;
 
   beforeAll(async () => {
     await connectMongo();
@@ -30,16 +34,34 @@ describe("User routes", () => {
     admin = await createIdentity(app, "users.admin", "admin");
     normal = await createIdentity(app, "users.normal", "patient");
     linkedPatient = await createIdentity(app, "users.linked", "patient");
-    createdEmails.push(admin.email, normal.email, linkedPatient.email);
+    practitioner = await createIdentity(app, "users.pract", "practitioner");
+    linkedPractitioner = await createIdentity(
+      app,
+      "users.linkedpract",
+      "practitioner",
+    );
+    createdEmails.push(
+      admin.email,
+      normal.email,
+      linkedPatient.email,
+      practitioner.email,
+      linkedPractitioner.email,
+    );
 
     await User.updateOne(
       { _id: linkedPatient.userId },
       { $set: { fhirPatientId: "dup-patient-1001" } },
     );
+    await User.updateOne(
+      { _id: linkedPractitioner.userId },
+      { $set: { fhirPractitionerId: "dup-practitioner-1001" } },
+    );
 
     adminUserId = admin.userId;
     normalUserId = normal.userId;
     linkedPatientUserId = linkedPatient.userId;
+    practitionerUserId = practitioner.userId;
+    linkedPractitionerUserId = linkedPractitioner.userId;
   });
 
   afterAll(async () => {
@@ -120,6 +142,27 @@ describe("User routes", () => {
     expect(res.status).toBe(403);
   });
 
+  it("returns 400 for malformed fhirPractitionerId on link endpoint", async () => {
+    const res = await admin.agent
+      .patch(`/api/users/${practitionerUserId}/link-practitioner`)
+      .send({ fhirPractitionerId: "bad id !" });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 403 when linking practitioner id on non-practitioner target", async () => {
+    const ensureRole = await admin.agent
+      .patch(`/api/users/${normalUserId}/role`)
+      .send({ role: "patient" });
+    expect(ensureRole.status).toBe(200);
+
+    const res = await admin.agent
+      .patch(`/api/users/${normalUserId}/link-practitioner`)
+      .send({ fhirPractitionerId: "pract-1001" });
+
+    expect(res.status).toBe(403);
+  });
+
   it("returns 404 for unknown target user", async () => {
     const res = await admin.agent
       .patch(`/api/users/${randomUUID()}/role`)
@@ -144,6 +187,28 @@ describe("User routes", () => {
 
     const linkedUserAfter = await User.findById(linkedPatientUserId).lean();
     expect(linkedUserAfter?.fhirPatientId).toBe("dup-patient-1001");
+  });
+
+  it("returns 409 when linking a fhirPractitionerId already linked to another user", async () => {
+    expect.assertions(5);
+
+    const ensurePractitionerRole = await admin.agent
+      .patch(`/api/users/${practitionerUserId}/role`)
+      .send({ role: "practitioner" });
+    expect(ensurePractitionerRole.status).toBe(200);
+
+    const res = await admin.agent
+      .patch(`/api/users/${practitionerUserId}/link-practitioner`)
+      .send({ fhirPractitionerId: "dup-practitioner-1001" });
+
+    expect(res.status).toBe(409);
+    expect(res.body?.status).toBe("fail");
+    expect(String(res.body?.data?.message ?? "")).toMatch(/already linked/i);
+
+    const linkedUserAfter = await User.findById(
+      linkedPractitionerUserId,
+    ).lean();
+    expect(linkedUserAfter?.fhirPractitionerId).toBe("dup-practitioner-1001");
   });
 
   it("keeps admin identity accessible for sanity", async () => {
