@@ -138,138 +138,25 @@ export function PatientAppointmentsTab({
         </div>
       )}
 
-      {appointmentsError && !appointments && (
+      {!appointmentsLoading && appointmentsError && (
         <ErrorState message="Failed to load appointments" onRetry={onRetry} />
       )}
 
-      {appointments && appointments.length === 0 && (
-        <EmptyState
-          icon={CalendarClock}
-          title="No appointments yet"
-          subtitle="No appointment requests found for this patient."
-        />
-      )}
+      {!appointmentsLoading &&
+        !appointmentsError &&
+        appointments &&
+        appointments.length === 0 && (
+          <EmptyState
+            icon={CalendarClock}
+            title="No appointments yet"
+            subtitle="No appointment requests found for this patient."
+          />
+        )}
 
-      {appointments && upcoming.length > 0 && (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Start</TableHead>
-                <TableHead>End</TableHead>
-                <TableHead>Practitioner</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead>Status</TableHead>
-                {canWriteAppointments && <TableHead>Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {upcoming.map((appointment) => (
-                <TableRow key={appointment.id}>
-                  <TableCell>{formatDateTime(appointment.start)}</TableCell>
-                  <TableCell>{formatDateTime(appointment.end)}</TableCell>
-                  <TableCell>
-                    {getPractitionerLabel(
-                      appointment.practitionerDisplay,
-                      appointment.practitionerReference,
-                    )}
-                  </TableCell>
-                  <TableCell>{appointment.reason ?? "—"}</TableCell>
-                  <TableCell>
-                    <AppointmentStatusBadge
-                      status={appointment.lifecycleStatus}
-                    />
-                  </TableCell>
-                  {canWriteAppointments && (
-                    <TableCell>
-                      <div className="flex gap-2">
-                        {appointment.lifecycleStatus === "requested" && (
-                          <>
-                            <Button
-                              size="sm"
-                              disabled={updating}
-                              onClick={() => {
-                                onDecide(
-                                  appointment.id,
-                                  { status: "confirmed" },
-                                  {
-                                    onSuccess: () =>
-                                      toast.success("Appointment confirmed"),
-                                    onError: (error) =>
-                                      toast.error(
-                                        error instanceof Error
-                                          ? error.message
-                                          : "Failed to confirm appointment",
-                                      ),
-                                  },
-                                );
-                              }}
-                            >
-                              Confirm
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              disabled={updating}
-                              onClick={() => {
-                                onDecide(
-                                  appointment.id,
-                                  { status: "declined" },
-                                  {
-                                    onSuccess: () =>
-                                      toast.success("Appointment declined"),
-                                    onError: (error) =>
-                                      toast.error(
-                                        error instanceof Error
-                                          ? error.message
-                                          : "Failed to decline appointment",
-                                      ),
-                                  },
-                                );
-                              }}
-                            >
-                              Decline
-                            </Button>
-                          </>
-                        )}
-                        {appointment.lifecycleStatus === "confirmed" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={updating}
-                            onClick={() => {
-                              onDecide(
-                                appointment.id,
-                                { status: "cancelled" },
-                                {
-                                  onSuccess: () =>
-                                    toast.success("Appointment cancelled"),
-                                  onError: (error) =>
-                                    toast.error(
-                                      error instanceof Error
-                                        ? error.message
-                                        : "Failed to cancel appointment",
-                                    ),
-                                },
-                              );
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-
-      {appointments && history.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-base font-semibold">History</h3>
+      {!appointmentsLoading &&
+        !appointmentsError &&
+        appointments &&
+        upcoming.length > 0 && (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -279,10 +166,11 @@ export function PatientAppointmentsTab({
                   <TableHead>Practitioner</TableHead>
                   <TableHead>Reason</TableHead>
                   <TableHead>Status</TableHead>
+                  {canWriteAppointments && <TableHead>Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {history.map((appointment) => (
+                {upcoming.map((appointment) => (
                   <TableRow key={appointment.id}>
                     <TableCell>{formatDateTime(appointment.start)}</TableCell>
                     <TableCell>{formatDateTime(appointment.end)}</TableCell>
@@ -298,13 +186,134 @@ export function PatientAppointmentsTab({
                         status={appointment.lifecycleStatus}
                       />
                     </TableCell>
+                    {canWriteAppointments && (
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {appointment.lifecycleStatus === "requested" && (
+                            <>
+                              <Button
+                                size="sm"
+                                disabled={updating}
+                                onClick={() => {
+                                  onDecide(
+                                    appointment.id,
+                                    { status: "confirmed" },
+                                    {
+                                      onSuccess: () =>
+                                        toast.success("Appointment confirmed"),
+                                      onError: (error) =>
+                                        toast.error(
+                                          error instanceof Error
+                                            ? error.message
+                                            : "Failed to confirm appointment",
+                                        ),
+                                    },
+                                  );
+                                }}
+                              >
+                                Confirm
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                disabled={updating}
+                                onClick={() => {
+                                  onDecide(
+                                    appointment.id,
+                                    { status: "declined" },
+                                    {
+                                      onSuccess: () =>
+                                        toast.success("Appointment declined"),
+                                      onError: (error) =>
+                                        toast.error(
+                                          error instanceof Error
+                                            ? error.message
+                                            : "Failed to decline appointment",
+                                        ),
+                                    },
+                                  );
+                                }}
+                              >
+                                Decline
+                              </Button>
+                            </>
+                          )}
+                          {appointment.lifecycleStatus === "confirmed" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={updating}
+                              onClick={() => {
+                                onDecide(
+                                  appointment.id,
+                                  { status: "cancelled" },
+                                  {
+                                    onSuccess: () =>
+                                      toast.success("Appointment cancelled"),
+                                    onError: (error) =>
+                                      toast.error(
+                                        error instanceof Error
+                                          ? error.message
+                                          : "Failed to cancel appointment",
+                                      ),
+                                  },
+                                );
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
-        </div>
-      )}
+        )}
+
+      {!appointmentsLoading &&
+        !appointmentsError &&
+        appointments &&
+        history.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-base font-semibold">History</h3>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Start</TableHead>
+                    <TableHead>End</TableHead>
+                    <TableHead>Practitioner</TableHead>
+                    <TableHead>Reason</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {history.map((appointment) => (
+                    <TableRow key={appointment.id}>
+                      <TableCell>{formatDateTime(appointment.start)}</TableCell>
+                      <TableCell>{formatDateTime(appointment.end)}</TableCell>
+                      <TableCell>
+                        {getPractitionerLabel(
+                          appointment.practitionerDisplay,
+                          appointment.practitionerReference,
+                        )}
+                      </TableCell>
+                      <TableCell>{appointment.reason ?? "—"}</TableCell>
+                      <TableCell>
+                        <AppointmentStatusBadge
+                          status={appointment.lifecycleStatus}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
     </div>
   );
 }

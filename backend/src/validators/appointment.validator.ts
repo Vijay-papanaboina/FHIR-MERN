@@ -11,29 +11,31 @@ export const fhirIdSchema = z
   .trim()
   .regex(FHIR_ID_REGEX, "Invalid FHIR ID format");
 
-export const createAppointmentRequestSchema = z.object({
-  careTeamUserId: z
-    .string()
-    .trim()
-    .min(1, "careTeamUserId is required")
-    .max(128, "careTeamUserId is too long"),
-  start: z
-    .string()
-    .trim()
-    .min(1, "start is required")
-    .refine((value) => !Number.isNaN(Date.parse(value)), {
-      message: "start must be a valid datetime",
-    }),
-  end: z
-    .string()
-    .trim()
-    .min(1, "end is required")
-    .refine((value) => !Number.isNaN(Date.parse(value)), {
-      message: "end must be a valid datetime",
-    }),
-  reason: z.string().trim().max(512, "reason is too long").optional(),
-  note: z.string().trim().max(1024, "note is too long").optional(),
-});
+export const createAppointmentRequestSchema = z
+  .object({
+    careTeamUserId: z
+      .string()
+      .trim()
+      .min(1, "careTeamUserId is required")
+      .max(128, "careTeamUserId is too long"),
+    start: z
+      .string()
+      .trim()
+      .datetime({ offset: true, message: "start must be a valid datetime" }),
+    end: z
+      .string()
+      .trim()
+      .datetime({ offset: true, message: "end must be a valid datetime" }),
+    reason: z.string().trim().max(512, "reason is too long").optional(),
+    note: z.string().trim().max(1024, "note is too long").optional(),
+  })
+  .refine(
+    (value) => new Date(value.end).getTime() > new Date(value.start).getTime(),
+    {
+      path: ["end"],
+      message: "end must be after start",
+    },
+  );
 
 export const updateAppointmentDecisionSchema = z.object({
   status: z.enum(["confirmed", "declined", "cancelled"], {

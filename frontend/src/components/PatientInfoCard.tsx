@@ -27,6 +27,7 @@ interface PatientInfoCardProps {
   assignmentsError: boolean;
   onRetryAssignments: () => void;
   practitioners: PractitionerSummaryDTO[] | undefined;
+  practitionersLoading: boolean;
   practitionersError: boolean;
   onRetryPractitioners: () => void;
 }
@@ -42,6 +43,7 @@ export function PatientInfoCard({
   assignmentsError,
   onRetryAssignments,
   practitioners,
+  practitionersLoading,
   practitionersError,
   onRetryPractitioners,
 }: PatientInfoCardProps) {
@@ -107,8 +109,11 @@ export function PatientInfoCard({
         <CardContent className="pt-0">
           <div className="space-y-2">
             <p className="text-sm font-medium">Assigned To</p>
-            {assignmentsLoading && <Skeleton className="h-6 w-52" />}
+            {(assignmentsLoading || practitionersLoading) && (
+              <Skeleton className="h-6 w-52" />
+            )}
             {!assignmentsLoading &&
+              !practitionersLoading &&
               (assignmentsError || practitionersError) && (
                 <ErrorState
                   message="Failed to load assignment details"
@@ -119,6 +124,7 @@ export function PatientInfoCard({
                 />
               )}
             {!assignmentsLoading &&
+              !practitionersLoading &&
               !assignmentsError &&
               !practitionersError &&
               (!assignments || assignments.length === 0) && (
@@ -127,6 +133,7 @@ export function PatientInfoCard({
                 </p>
               )}
             {!assignmentsLoading &&
+              !practitionersLoading &&
               !assignmentsError &&
               !practitionersError &&
               assignments &&

@@ -83,6 +83,7 @@ export function PatientDetailPage() {
   } = usePatientAssignments(id, isAdmin);
   const {
     data: practitioners,
+    isPending: practitionersLoading,
     isError: practitionersError,
     refetch: refetchPractitioners,
   } = usePractitioners(isAdmin);
@@ -167,6 +168,7 @@ export function PatientDetailPage() {
           void refetchAssignments();
         }}
         practitioners={practitioners}
+        practitionersLoading={practitionersLoading}
         practitionersError={practitionersError}
         onRetryPractitioners={() => {
           void refetchPractitioners();

@@ -1,7 +1,10 @@
 export function isSafeReturnPath(path: string): boolean {
   const value = String(path ?? "").trim();
   return (
-    value.startsWith("/") && !value.startsWith("//") && !value.includes("://")
+    value.startsWith("/") &&
+    !value.startsWith("//") &&
+    !value.includes("://") &&
+    !value.includes("\\")
   );
 }
 

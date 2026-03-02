@@ -85,8 +85,7 @@ export function PatientMedicationsTab({
     (medication) => medication.status === "active",
   );
   const nonActiveMedications = (medications ?? []).filter(
-    (medication) =>
-      medication.status === "completed" || medication.status === "stopped",
+    (medication) => medication.status !== "active",
   );
   const showLoadingState = medicationsLoading && !medications;
   const showErrorState = !showLoadingState && medicationsError && !medications;
@@ -267,7 +266,7 @@ export function PatientMedicationsTab({
             <CardHeader>
               <CardTitle className="text-base">Medication History</CardTitle>
               <CardDescription>
-                Completed and stopped prescriptions.
+                Completed, stopped, and other non-active prescriptions.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">

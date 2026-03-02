@@ -199,8 +199,15 @@ export const updateAppointment = async (
     : null;
   const normalizedEnd = patch.end ? normalizeDateTime(patch.end, "end") : null;
 
-  if (normalizedStart && normalizedEnd) {
-    assertEndAfterStart(normalizedStart, normalizedEnd);
+  const existingStart =
+    typeof existing["start"] === "string" ? existing["start"] : null;
+  const existingEnd =
+    typeof existing["end"] === "string" ? existing["end"] : null;
+  const effectiveStart = normalizedStart ?? existingStart;
+  const effectiveEnd = normalizedEnd ?? existingEnd;
+
+  if (effectiveStart && effectiveEnd) {
+    assertEndAfterStart(effectiveStart, effectiveEnd);
   }
 
   const updated: Record<string, unknown> = {

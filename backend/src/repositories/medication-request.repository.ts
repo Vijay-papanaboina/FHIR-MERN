@@ -121,15 +121,19 @@ export const updateMedicationRequestStatus = async (
   const trimmedId = id.trim();
   const existing = await getMedicationRequestById(trimmedId);
   const currentStatus = existing["status"];
-  if (
-    expectedCurrentStatus &&
-    typeof currentStatus === "string" &&
-    currentStatus !== expectedCurrentStatus
-  ) {
-    throw new AppError(
-      `MedicationRequest status changed before update: expected ${expectedCurrentStatus}, got ${currentStatus}`,
-      409,
-    );
+  if (expectedCurrentStatus) {
+    if (typeof currentStatus !== "string") {
+      throw new AppError(
+        "MedicationRequest currentStatus missing or malformed",
+        409,
+      );
+    }
+    if (currentStatus !== expectedCurrentStatus) {
+      throw new AppError(
+        `MedicationRequest status changed before update: expected ${expectedCurrentStatus}, got ${currentStatus}`,
+        409,
+      );
+    }
   }
   const meta = existing["meta"];
   const versionId =

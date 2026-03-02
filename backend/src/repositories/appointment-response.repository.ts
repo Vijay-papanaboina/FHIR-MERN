@@ -117,8 +117,16 @@ export const createAppointmentResponse = async (
 export const getResponsesByAppointment = async (
   appointmentId: string,
 ): Promise<Record<string, unknown>> => {
+  const trimmedAppointmentId = appointmentId.trim();
+  if (!trimmedAppointmentId) {
+    throw new AppError(
+      "appointmentId is required for AppointmentResponse lookup",
+      400,
+    );
+  }
+
   const query = new URLSearchParams({
-    appointment: `Appointment/${appointmentId.trim()}`,
+    appointment: `Appointment/${trimmedAppointmentId}`,
     _sort: "-_lastUpdated",
   });
 

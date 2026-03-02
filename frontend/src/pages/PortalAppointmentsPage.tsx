@@ -138,19 +138,21 @@ export function PortalAppointmentsPage() {
         </div>
       )}
 
-      {(appointmentsQuery.isError || careTeamQuery.isError) && (
-        <ErrorState
-          message={
-            appointmentsQuery.error?.message ??
-            careTeamQuery.error?.message ??
-            "Failed to load appointments"
-          }
-          onRetry={() => {
-            void appointmentsQuery.refetch();
-            void careTeamQuery.refetch();
-          }}
-        />
-      )}
+      {!appointmentsQuery.isPending &&
+        !careTeamQuery.isPending &&
+        (appointmentsQuery.isError || careTeamQuery.isError) && (
+          <ErrorState
+            message={
+              appointmentsQuery.error?.message ??
+              careTeamQuery.error?.message ??
+              "Failed to load appointments"
+            }
+            onRetry={() => {
+              void appointmentsQuery.refetch();
+              void careTeamQuery.refetch();
+            }}
+          />
+        )}
 
       {!appointmentsQuery.isPending &&
         !careTeamQuery.isPending &&

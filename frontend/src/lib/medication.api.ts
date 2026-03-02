@@ -107,7 +107,7 @@ export function mapMedicationRequest(
   const { dosageInstructions, frequency } = extractDosageAndFrequency(resource);
   const id = asStringOrNull(resource.id);
   if (!id) {
-    console.warn("Skipping MedicationRequest without id", resource);
+    console.warn("Skipping MedicationRequest without id");
     return null;
   }
 
@@ -190,10 +190,10 @@ export async function createPatientMedication(
   if (!trimmedPatientId) {
     return Promise.reject(new Error("Patient ID is required"));
   }
-  const drugName = input.drugName.trim();
-  const dosageInstructions = input.dosageInstructions.trim();
-  const frequency = input.frequency.trim();
-  const startDate = input.startDate.trim();
+  const drugName = input.drugName?.trim() ?? "";
+  const dosageInstructions = input.dosageInstructions?.trim() ?? "";
+  const frequency = input.frequency?.trim() ?? "";
+  const startDate = input.startDate?.trim() ?? "";
   if (!drugName) {
     return Promise.reject(new Error("drugName is required"));
   }
