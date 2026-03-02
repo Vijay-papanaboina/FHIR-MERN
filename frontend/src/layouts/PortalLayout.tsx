@@ -2,6 +2,7 @@ import {
   Activity,
   CalendarClock,
   ClipboardList,
+  FlaskConical,
   HeartPulse,
   Pill,
   ShieldAlert,
@@ -18,6 +19,7 @@ const portalNav: AppShellNavItem[] = [
   { title: "My Appointments", to: "/portal/appointments", icon: CalendarClock },
   { title: "My Conditions", to: "/portal/conditions", icon: ClipboardList },
   { title: "My Allergies", to: "/portal/allergies", icon: ShieldAlert },
+  { title: "My Diagnostics", to: "/portal/diagnostics", icon: FlaskConical },
 ];
 
 export function PortalLayout() {

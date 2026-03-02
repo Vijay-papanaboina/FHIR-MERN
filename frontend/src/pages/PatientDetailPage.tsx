@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   CalendarClock,
   ClipboardList,
+  FlaskConical,
   Pill,
   ShieldAlert,
 } from "lucide-react";
@@ -43,14 +44,17 @@ import { PatientMedicationsTab } from "@/components/PatientMedicationsTab";
 import { PatientAppointmentsTab } from "@/components/PatientAppointmentsTab";
 import { PatientConditionsTab } from "@/components/PatientConditionsTab";
 import { PatientAllergiesTab } from "@/components/PatientAllergiesTab";
+import { PatientDiagnosticsTab } from "@/components/PatientDiagnosticsTab";
 import { Button } from "@/components/ui/button";
+import { useDiagnostics } from "@/hooks/use-diagnostics";
 
 type ActiveTab =
   | "vitals"
   | "medications"
   | "appointments"
   | "conditions"
-  | "allergies";
+  | "allergies"
+  | "diagnostics";
 
 export function PatientDetailPage() {
   const { id = "" } = useParams<{ id: string }>();
@@ -112,6 +116,12 @@ export function PatientDetailPage() {
     isError: allergiesError,
     refetch: refetchAllergies,
   } = useAllergies(id);
+  const {
+    data: diagnostics,
+    isPending: diagnosticsLoading,
+    isError: diagnosticsError,
+    refetch: refetchDiagnostics,
+  } = useDiagnostics(id);
   const createCondition = useCreateCondition(id);
   const updateConditionStatus = useUpdateConditionStatus(id);
   const deleteCondition = useDeleteCondition(id);
@@ -262,6 +272,14 @@ export function PatientDetailPage() {
           <ShieldAlert className="mr-2 h-4 w-4" />
           Allergies
         </Button>
+        <Button
+          size="sm"
+          variant={activeTab === "diagnostics" ? "default" : "ghost"}
+          onClick={() => setActiveTab("diagnostics")}
+        >
+          <FlaskConical className="mr-2 h-4 w-4" />
+          Diagnostics
+        </Button>
       </div>
 
       {activeTab === "vitals" && (
@@ -392,6 +410,18 @@ export function PatientDetailPage() {
               onSuccess: options?.onSuccess,
               onError: options?.onError,
             });
+          }}
+        />
+      )}
+
+      {activeTab === "diagnostics" && (
+        <PatientDiagnosticsTab
+          patientId={id}
+          diagnostics={diagnostics}
+          diagnosticsLoading={diagnosticsLoading}
+          diagnosticsError={diagnosticsError}
+          onRetry={() => {
+            void refetchDiagnostics();
           }}
         />
       )}
