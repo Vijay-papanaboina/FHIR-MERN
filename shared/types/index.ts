@@ -55,3 +55,8 @@ export type {
   AllergyDTO,
   CreateAllergyInput,
 } from "./allergy.dto.js";
+export type {
+  DiagnosticReportStatus,
+  DiagnosticReportDTO,
+  DiagnosticResultDTO,
+} from "./diagnostic.dto.js";
