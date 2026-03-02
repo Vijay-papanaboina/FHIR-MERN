@@ -6,6 +6,7 @@ export interface UserRowDTO {
   email: string;
   role: UserRole;
   fhirPatientId: string | null;
+  fhirPractitionerId: string | null;
 }
 
 export interface ListUsersResponse {

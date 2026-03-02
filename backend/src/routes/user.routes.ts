@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  linkPractitionerHandler,
   listUsersHandler,
   linkPatientHandler,
   updateUserRoleHandler,
@@ -14,6 +15,7 @@ router.use(requireAuth, requireRole("admin"));
 
 router.get("/", listUsersHandler);
 router.patch("/:userId/link-patient", linkPatientHandler);
+router.patch("/:userId/link-practitioner", linkPractitionerHandler);
 router.patch("/:userId/role", updateUserRoleHandler);
 
 export default router;

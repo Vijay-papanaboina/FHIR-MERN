@@ -111,6 +111,7 @@ describe("appointment.service", () => {
       _id: "u-primary",
       role: "practitioner",
       name: "Dr Primary",
+      fhirPractitionerId: "pract-1",
     });
     appointmentRepoMocks.createAppointment.mockResolvedValue({
       id: "appt-1",
@@ -118,7 +119,7 @@ describe("appointment.service", () => {
       participant: [
         { actor: { reference: `Patient/${patientFhirId}` } },
         {
-          actor: { reference: "Practitioner/u-primary", display: "Dr Primary" },
+          actor: { reference: "Practitioner/pract-1", display: "Dr Primary" },
         },
       ],
     });
@@ -136,7 +137,7 @@ describe("appointment.service", () => {
 
     expect(appointmentRepoMocks.createAppointment).toHaveBeenCalledWith(
       patientFhirId,
-      "u-primary",
+      "pract-1",
       expect.objectContaining({
         status: "pending",
         patientParticipantStatus: "accepted",
@@ -154,6 +155,7 @@ describe("appointment.service", () => {
       _id: "u-covering",
       role: "practitioner",
       name: "Dr Covering",
+      fhirPractitionerId: "pract-2",
     });
     appointmentRepoMocks.createAppointment.mockResolvedValue({
       id: "appt-2",
@@ -162,7 +164,7 @@ describe("appointment.service", () => {
         { actor: { reference: `Patient/${patientFhirId}` } },
         {
           actor: {
-            reference: "Practitioner/u-covering",
+            reference: "Practitioner/pract-2",
             display: "Dr Covering",
           },
         },

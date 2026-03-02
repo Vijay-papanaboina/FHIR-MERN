@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import type { UserRole } from "@/lib/user.api";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
+  useLinkUserPractitioner,
   useLinkUserPatient,
   useUpdateUserRole,
   useUsers,
@@ -41,6 +42,8 @@ export function UsersPage() {
   const [draftFhirByUserId, setDraftFhirByUserId] = useState<
     Record<string, string>
   >({});
+  const [draftPractitionerFhirByUserId, setDraftPractitionerFhirByUserId] =
+    useState<Record<string, string>>({});
 
   const debouncedSearch = useDebounce(search.trim(), 300);
   const { data, isPending, isError, error, refetch } = useUsers({
@@ -51,6 +54,7 @@ export function UsersPage() {
   });
   const updateRole = useUpdateUserRole();
   const linkPatient = useLinkUserPatient();
+  const linkPractitioner = useLinkUserPractitioner();
 
   const total = data?.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -85,11 +89,32 @@ export function UsersPage() {
     }
   };
 
+  const onLinkPractitioner = async (userId: string) => {
+    const fhirPractitionerId = (
+      draftPractitionerFhirByUserId[userId] ?? ""
+    ).trim();
+    if (!fhirPractitionerId) {
+      toast.error("Enter a FHIR Practitioner ID");
+      return;
+    }
+    try {
+      await linkPractitioner.mutateAsync({ userId, fhirPractitionerId });
+      toast.success("Practitioner linked");
+      setDraftPractitionerFhirByUserId((prev) => ({ ...prev, [userId]: "" }));
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to link practitioner",
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Users</h1>
-        <p className="text-muted-foreground">Manage roles and patient links.</p>
+        <p className="text-muted-foreground">
+          Manage roles and patient/practitioner FHIR links.
+        </p>
       </div>
 
       <div className="max-w-sm">
@@ -111,7 +136,7 @@ export function UsersPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>FHIR Patient ID</TableHead>
+                <TableHead>FHIR Links</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -162,7 +187,7 @@ export function UsersPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>FHIR Patient ID</TableHead>
+                <TableHead>FHIR Links</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -170,8 +195,12 @@ export function UsersPage() {
               {data?.items.map((user) => {
                 const isUnlinkedPatient =
                   user.role === "patient" && !user.fhirPatientId;
+                const isUnlinkedPractitioner =
+                  user.role === "practitioner" && !user.fhirPractitionerId;
                 const draftRole = draftRoleByUserId[user._id] ?? user.role;
                 const draftFhir = draftFhirByUserId[user._id] ?? "";
+                const draftPractitionerFhir =
+                  draftPractitionerFhirByUserId[user._id] ?? "";
                 return (
                   <TableRow key={user._id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
@@ -210,19 +239,26 @@ export function UsersPage() {
                     </TableCell>
                     <TableCell>
                       <div className="space-y-2">
-                        {user.fhirPatientId ? (
-                          <Badge variant="outline">{user.fhirPatientId}</Badge>
-                        ) : (
+                        <div className="flex flex-wrap gap-2">
                           <Badge
                             variant={
-                              isUnlinkedPatient ? "destructive" : "secondary"
+                              user.fhirPatientId ? "outline" : "secondary"
                             }
                           >
-                            {isUnlinkedPatient
-                              ? "Unlinked patient"
-                              : "Not linked"}
+                            {user.fhirPatientId
+                              ? `Patient: ${user.fhirPatientId}`
+                              : "Patient: not linked"}
                           </Badge>
-                        )}
+                          <Badge
+                            variant={
+                              user.fhirPractitionerId ? "outline" : "secondary"
+                            }
+                          >
+                            {user.fhirPractitionerId
+                              ? `Practitioner: ${user.fhirPractitionerId}`
+                              : "Practitioner: not linked"}
+                          </Badge>
+                        </div>
                         {user.role === "patient" && !user.fhirPatientId && (
                           <div className="flex gap-2">
                             <Input
@@ -244,10 +280,43 @@ export function UsersPage() {
                             </Button>
                           </div>
                         )}
+                        {user.role === "practitioner" &&
+                          !user.fhirPractitionerId && (
+                            <div className="flex gap-2">
+                              <Input
+                                value={draftPractitionerFhir}
+                                onChange={(e) =>
+                                  setDraftPractitionerFhirByUserId((prev) => ({
+                                    ...prev,
+                                    [user._id]: e.target.value,
+                                  }))
+                                }
+                                placeholder="FHIR Practitioner ID"
+                              />
+                              <Button
+                                size="sm"
+                                onClick={() => onLinkPractitioner(user._id)}
+                                disabled={linkPractitioner.isPending}
+                              >
+                                Link
+                              </Button>
+                            </div>
+                          )}
+                        {user.role !== "patient" &&
+                          user.role !== "practitioner" && (
+                            <Badge variant="secondary">
+                              No FHIR link needed
+                            </Badge>
+                          )}
+                        {(isUnlinkedPatient || isUnlinkedPractitioner) && (
+                          <Badge variant="destructive">Link required</Badge>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      {(updateRole.isPending || linkPatient.isPending) && (
+                      {(updateRole.isPending ||
+                        linkPatient.isPending ||
+                        linkPractitioner.isPending) && (
                         <Loader2 className="ml-auto h-4 w-4 animate-spin" />
                       )}
                     </TableCell>

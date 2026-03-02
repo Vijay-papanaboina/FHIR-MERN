@@ -113,6 +113,30 @@ const extractPatientIdFromAppointment = (
   return null;
 };
 
+const extractPractitionerReferenceFromAppointment = (
+  resource: Record<string, unknown>,
+): string | null => {
+  const participant = Array.isArray(resource["participant"])
+    ? (resource["participant"] as Array<Record<string, unknown>>)
+    : [];
+
+  for (const part of participant) {
+    const actor = part["actor"];
+    const reference =
+      actor && typeof actor === "object"
+        ? (actor as { reference?: unknown }).reference
+        : undefined;
+    if (
+      typeof reference === "string" &&
+      reference.startsWith("Practitioner/")
+    ) {
+      return reference;
+    }
+  }
+
+  return null;
+};
+
 const assertAppointmentBelongsToPatient = (
   appointment: Record<string, unknown>,
   patientFhirId: string,
@@ -200,6 +224,51 @@ const assertCareTeamTarget = async (
   }
 };
 
+const resolveCareTeamPractitionerFhirId = async (
+  patientFhirId: string,
+  careTeamUserId: string,
+): Promise<string> => {
+  await assertCareTeamTarget(patientFhirId, careTeamUserId);
+
+  const practitionerUser = await findUserById(careTeamUserId);
+  const practitionerFhirId = practitionerUser?.fhirPractitionerId?.trim();
+  if (!practitionerFhirId) {
+    throw new AppError(
+      "Target practitioner is not linked to a FHIR Practitioner resource",
+      409,
+    );
+  }
+
+  return practitionerFhirId;
+};
+
+const resolveDecisionParticipantReference = async (
+  actor: ClinicalAppointmentActor,
+  appointment: Record<string, unknown>,
+): Promise<string> => {
+  if (actor.role === "admin") {
+    const appointmentPractitioner =
+      extractPractitionerReferenceFromAppointment(appointment);
+    if (!appointmentPractitioner) {
+      throw new AppError(
+        "Unable to resolve appointment practitioner reference for decision",
+        409,
+      );
+    }
+    return appointmentPractitioner;
+  }
+
+  const user = await findUserById(actor.userId);
+  const practitionerFhirId = user?.fhirPractitionerId?.trim();
+  if (!practitionerFhirId) {
+    throw new AppError(
+      "Practitioner user is not linked to a FHIR Practitioner resource",
+      409,
+    );
+  }
+  return `Practitioner/${practitionerFhirId}`;
+};
+
 const createAppointmentForPatient = async (
   patientFhirId: string,
   input: CreateAppointmentRequestInput,
@@ -213,9 +282,12 @@ const createAppointmentForPatient = async (
   }
 
   assertChronologicalAndFuture(parsed.data.start, parsed.data.end);
-  await assertCareTeamTarget(patientFhirId, parsed.data.careTeamUserId);
+  const practitionerFhirId = await resolveCareTeamPractitionerFhirId(
+    patientFhirId,
+    parsed.data.careTeamUserId,
+  );
 
-  return createAppointment(patientFhirId, parsed.data.careTeamUserId, {
+  return createAppointment(patientFhirId, practitionerFhirId, {
     start: parsed.data.start,
     end: parsed.data.end,
     status: "pending",
@@ -397,6 +469,24 @@ const applyDecision = async (
 
   const cancellationReasonText =
     decision.status === "declined" ? "declined" : "cancelled";
+  const syncedStatus = out.appointment["status"];
+  const expectedCurrentStatus =
+    typeof syncedStatus === "string" &&
+    [
+      "proposed",
+      "pending",
+      "booked",
+      "arrived",
+      "fulfilled",
+      "cancelled",
+      "noshow",
+      "entered-in-error",
+      "checked-in",
+      "waitlist",
+    ].includes(syncedStatus)
+      ? (syncedStatus as AppointmentStatus)
+      : undefined;
+
   return updateAppointment(
     appointmentId,
     {
@@ -404,7 +494,7 @@ const applyDecision = async (
       cancellationReasonText,
       ...(decision.comment ? { comment: decision.comment } : {}),
     },
-    "cancelled",
+    expectedCurrentStatus,
   );
 };
 
@@ -476,10 +566,14 @@ export const decideClinicalPatientAppointment = async (
   assertAppointmentBelongsToPatient(appointment, normalizedPatientId);
   const current = toLifecycleStatus(appointment);
   assertDecisionTransitionAllowed(current, parsed.data.status);
+  const participantReference = await resolveDecisionParticipantReference(
+    actor,
+    appointment,
+  );
 
   const updated = await applyDecision(
     normalizedAppointmentId,
-    `Practitioner/${actor.userId}`,
+    participantReference,
     actor.name,
     {
       status: parsed.data.status,

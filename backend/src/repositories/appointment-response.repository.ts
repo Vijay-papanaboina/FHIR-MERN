@@ -119,7 +119,7 @@ export const getResponsesByAppointment = async (
 ): Promise<Record<string, unknown>> => {
   const query = new URLSearchParams({
     appointment: `Appointment/${appointmentId.trim()}`,
-    _sort: "-date",
+    _sort: "-_lastUpdated",
   });
 
   return fhirGet(`${fhirBaseUrl()}/AppointmentResponse?${query.toString()}`);

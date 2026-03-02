@@ -55,3 +55,20 @@ export function linkUserPatient(
     },
   );
 }
+
+export function linkUserPractitioner(
+  userId: string,
+  fhirPractitionerId: string,
+): Promise<UserRowDTO> {
+  const trimmedUserId = userId.trim();
+  const trimmedPractitionerId = fhirPractitionerId.trim();
+  if (!trimmedUserId) return Promise.reject(new Error("User ID is required"));
+  if (!trimmedPractitionerId)
+    return Promise.reject(new Error("FHIR Practitioner ID is required"));
+  return apiPatch<UserRowDTO>(
+    `/api/users/${encodeURIComponent(trimmedUserId)}/link-practitioner`,
+    {
+      fhirPractitionerId: trimmedPractitionerId,
+    },
+  );
+}

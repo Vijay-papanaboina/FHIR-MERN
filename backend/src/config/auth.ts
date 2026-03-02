@@ -5,7 +5,7 @@ import { env } from "./env.js";
 import { logger } from "../utils/logger.js";
 
 // Named function so TypeScript infers the full return type (including additionalFields).
-// auth.$Infer.Session will correctly include `role` and `fhirPatientId`.
+// auth.$Infer.Session will correctly include role and linked FHIR ids.
 function createAuth() {
   return betterAuth({
     secret: env.BETTER_AUTH_SECRET,
@@ -36,6 +36,12 @@ function createAuth() {
           input: false,
         },
         fhirPatientId: {
+          type: "string",
+          required: false,
+          defaultValue: null,
+          input: false,
+        },
+        fhirPractitionerId: {
           type: "string",
           required: false,
           defaultValue: null,

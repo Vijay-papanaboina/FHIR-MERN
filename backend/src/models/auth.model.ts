@@ -10,6 +10,7 @@ export interface IUser {
   // Custom fields (via additionalFields)
   role: "patient" | "practitioner" | "admin";
   fhirPatientId?: string | null;
+  fhirPractitionerId?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +34,7 @@ const userSchema = new Schema<IUser>(
       default: "patient",
     },
     fhirPatientId: { type: String, default: null },
+    fhirPractitionerId: { type: String, default: null },
   },
   { timestamps: true, collection: "user" },
 );
@@ -44,6 +46,17 @@ userSchema.index(
     unique: true,
     partialFilterExpression: {
       fhirPatientId: { $exists: true, $type: "string", $ne: "" },
+    },
+  },
+);
+
+// One FHIR practitioner record can only be linked to one app user account.
+userSchema.index(
+  { fhirPractitionerId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      fhirPractitionerId: { $exists: true, $type: "string", $ne: "" },
     },
   },
 );
