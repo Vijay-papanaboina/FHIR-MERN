@@ -1,6 +1,13 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { Activity, ArrowLeft, CalendarClock, Pill } from "lucide-react";
+import {
+  Activity,
+  ArrowLeft,
+  CalendarClock,
+  ClipboardList,
+  Pill,
+  ShieldAlert,
+} from "lucide-react";
 import { getSessionUserValue } from "@/lib/roles";
 import {
   useCreatePatientAppointment,
@@ -18,13 +25,32 @@ import {
   usePractitioners,
 } from "@/hooks/use-assignments";
 import { useResolvedRole } from "@/hooks/use-resolved-role";
+import {
+  useConditions,
+  useCreateCondition,
+  useDeleteCondition,
+  useUpdateConditionStatus,
+} from "@/hooks/use-conditions";
+import {
+  useAllergies,
+  useCreateAllergy,
+  useDeleteAllergy,
+  useUpdateAllergyStatus,
+} from "@/hooks/use-allergies";
 import { PatientInfoCard } from "@/components/PatientInfoCard";
 import { PatientVitalsTab } from "@/components/PatientVitalsTab";
 import { PatientMedicationsTab } from "@/components/PatientMedicationsTab";
 import { PatientAppointmentsTab } from "@/components/PatientAppointmentsTab";
+import { PatientConditionsTab } from "@/components/PatientConditionsTab";
+import { PatientAllergiesTab } from "@/components/PatientAllergiesTab";
 import { Button } from "@/components/ui/button";
 
-type ActiveTab = "vitals" | "medications" | "appointments";
+type ActiveTab =
+  | "vitals"
+  | "medications"
+  | "appointments"
+  | "conditions"
+  | "allergies";
 
 export function PatientDetailPage() {
   const { id = "" } = useParams<{ id: string }>();
@@ -74,6 +100,24 @@ export function PatientDetailPage() {
   } = usePatientAppointments(id);
   const createPatientAppointment = useCreatePatientAppointment(id);
   const decidePatientAppointment = useDecidePatientAppointment(id);
+  const {
+    data: conditions,
+    isPending: conditionsLoading,
+    isError: conditionsError,
+    refetch: refetchConditions,
+  } = useConditions(id);
+  const {
+    data: allergies,
+    isPending: allergiesLoading,
+    isError: allergiesError,
+    refetch: refetchAllergies,
+  } = useAllergies(id);
+  const createCondition = useCreateCondition(id);
+  const updateConditionStatus = useUpdateConditionStatus(id);
+  const deleteCondition = useDeleteCondition(id);
+  const createAllergy = useCreateAllergy(id);
+  const updateAllergyStatus = useUpdateAllergyStatus(id);
+  const deleteAllergy = useDeleteAllergy(id);
 
   const {
     data: assignments,
@@ -93,6 +137,8 @@ export function PatientDetailPage() {
     isAdmin || assignmentRole === "primary" || assignmentRole === "covering";
   const canWriteAppointments = canWriteMedications;
   const canCreateAppointments = canWriteAppointments;
+  const canWriteConditions = canWriteMedications;
+  const canWriteAllergies = canWriteMedications;
 
   const careTeamOptions = useMemo(() => {
     const options: Array<{
@@ -200,6 +246,22 @@ export function PatientDetailPage() {
           <CalendarClock className="mr-2 h-4 w-4" />
           Appointments
         </Button>
+        <Button
+          size="sm"
+          variant={activeTab === "conditions" ? "default" : "ghost"}
+          onClick={() => setActiveTab("conditions")}
+        >
+          <ClipboardList className="mr-2 h-4 w-4" />
+          Conditions
+        </Button>
+        <Button
+          size="sm"
+          variant={activeTab === "allergies" ? "default" : "ghost"}
+          onClick={() => setActiveTab("allergies")}
+        >
+          <ShieldAlert className="mr-2 h-4 w-4" />
+          Allergies
+        </Button>
       </div>
 
       {activeTab === "vitals" && (
@@ -264,6 +326,72 @@ export function PatientDetailPage() {
                 onError: options?.onError,
               },
             );
+          }}
+        />
+      )}
+
+      {activeTab === "conditions" && (
+        <PatientConditionsTab
+          conditions={conditions}
+          conditionsLoading={conditionsLoading}
+          conditionsError={conditionsError}
+          onRetry={() => {
+            void refetchConditions();
+          }}
+          canWriteConditions={canWriteConditions}
+          creating={createCondition.isPending}
+          updating={updateConditionStatus.isPending}
+          deleting={deleteCondition.isPending}
+          onCreate={async (input) => {
+            await createCondition.mutateAsync(input);
+          }}
+          onStatusUpdate={(conditionId, status, options) => {
+            updateConditionStatus.mutate(
+              { conditionId, status },
+              {
+                onSuccess: options?.onSuccess,
+                onError: options?.onError,
+              },
+            );
+          }}
+          onDelete={(conditionId, options) => {
+            deleteCondition.mutate(conditionId, {
+              onSuccess: options?.onSuccess,
+              onError: options?.onError,
+            });
+          }}
+        />
+      )}
+
+      {activeTab === "allergies" && (
+        <PatientAllergiesTab
+          allergies={allergies}
+          allergiesLoading={allergiesLoading}
+          allergiesError={allergiesError}
+          onRetry={() => {
+            void refetchAllergies();
+          }}
+          canWriteAllergies={canWriteAllergies}
+          creating={createAllergy.isPending}
+          updating={updateAllergyStatus.isPending}
+          deleting={deleteAllergy.isPending}
+          onCreate={async (input) => {
+            await createAllergy.mutateAsync(input);
+          }}
+          onStatusUpdate={(allergyId, status, options) => {
+            updateAllergyStatus.mutate(
+              { allergyId, status },
+              {
+                onSuccess: options?.onSuccess,
+                onError: options?.onError,
+              },
+            );
+          }}
+          onDelete={(allergyId, options) => {
+            deleteAllergy.mutate(allergyId, {
+              onSuccess: options?.onSuccess,
+              onError: options?.onError,
+            });
           }}
         />
       )}

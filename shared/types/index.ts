@@ -43,3 +43,15 @@ export type {
   UpdateAppointmentDecisionInput,
   CreateAppointmentResponseInput,
 } from "./appointment.dto.js";
+export type {
+  ConditionStatus,
+  UpdatableConditionStatus,
+  ConditionDTO,
+  CreateConditionInput,
+} from "./condition.dto.js";
+export type {
+  AllergyStatus,
+  UpdatableAllergyStatus,
+  AllergyDTO,
+  CreateAllergyInput,
+} from "./allergy.dto.js";
