@@ -18,6 +18,30 @@ import type {
   UpdatableConditionStatus,
 } from "../validators/conditions-allergies.validator.js";
 
+const UPDATABLE_CONDITION_STATUSES = new Set<UpdatableConditionStatus>([
+  "inactive",
+  "resolved",
+  "entered-in-error",
+]);
+
+const UPDATABLE_ALLERGY_STATUSES = new Set<UpdatableAllergyStatus>([
+  "inactive",
+  "resolved",
+  "entered-in-error",
+]);
+
+const isUpdatableConditionStatus = (
+  value: string,
+): value is UpdatableConditionStatus => {
+  return UPDATABLE_CONDITION_STATUSES.has(value as UpdatableConditionStatus);
+};
+
+const isUpdatableAllergyStatus = (
+  value: string,
+): value is UpdatableAllergyStatus => {
+  return UPDATABLE_ALLERGY_STATUSES.has(value as UpdatableAllergyStatus);
+};
+
 const toClinicalRecordActor = (req: Request) => {
   const userId = req.user?.id;
   const role = req.user?.role;
@@ -68,7 +92,14 @@ export const updatePatientConditionStatusHandler = async (
   const actor = toClinicalRecordActor(req);
   const patientFhirId = String(req.params.patientFhirId ?? "");
   const conditionId = String(req.params.id ?? "");
-  const nextStatus = String(req.body?.status ?? "") as UpdatableConditionStatus;
+  const nextStatusRaw = String(req.body?.status ?? "");
+  if (!isUpdatableConditionStatus(nextStatusRaw)) {
+    throw new AppError(
+      "status must be one of: inactive, resolved, entered-in-error",
+      400,
+    );
+  }
+  const nextStatus = nextStatusRaw;
   const result = await changePatientConditionStatus(
     actor,
     patientFhirId,
@@ -128,7 +159,14 @@ export const updatePatientAllergyStatusHandler = async (
   const actor = toClinicalRecordActor(req);
   const patientFhirId = String(req.params.patientFhirId ?? "");
   const allergyId = String(req.params.id ?? "");
-  const nextStatus = String(req.body?.status ?? "") as UpdatableAllergyStatus;
+  const nextStatusRaw = String(req.body?.status ?? "");
+  if (!isUpdatableAllergyStatus(nextStatusRaw)) {
+    throw new AppError(
+      "status must be one of: inactive, resolved, entered-in-error",
+      400,
+    );
+  }
+  const nextStatus = nextStatusRaw;
   const result = await changePatientAllergyStatus(
     actor,
     patientFhirId,

@@ -9,28 +9,31 @@ import {
 } from "@/lib/allergy.api";
 
 export function useAllergies(patientFhirId: string) {
+  const normalizedId = patientFhirId.trim();
   return useQuery({
-    queryKey: ["allergies", patientFhirId],
-    queryFn: () => fetchPatientAllergies(patientFhirId),
-    enabled: patientFhirId.trim().length > 0,
+    queryKey: ["allergies", normalizedId],
+    queryFn: () => fetchPatientAllergies(normalizedId),
+    enabled: normalizedId.length > 0,
     staleTime: 30_000,
   });
 }
 
 export function useCreateAllergy(patientFhirId: string) {
+  const normalizedId = patientFhirId.trim();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateAllergyInput) =>
-      createPatientAllergy(patientFhirId, input),
+      createPatientAllergy(normalizedId, input),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: ["allergies", patientFhirId],
+        queryKey: ["allergies", normalizedId],
       });
     },
   });
 }
 
 export function useUpdateAllergyStatus(patientFhirId: string) {
+  const normalizedId = patientFhirId.trim();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -39,23 +42,24 @@ export function useUpdateAllergyStatus(patientFhirId: string) {
     }: {
       allergyId: string;
       status: UpdatableAllergyStatus;
-    }) => updatePatientAllergyStatus(patientFhirId, allergyId, status),
+    }) => updatePatientAllergyStatus(normalizedId, allergyId, status),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: ["allergies", patientFhirId],
+        queryKey: ["allergies", normalizedId],
       });
     },
   });
 }
 
 export function useDeleteAllergy(patientFhirId: string) {
+  const normalizedId = patientFhirId.trim();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (allergyId: string) =>
-      deletePatientAllergy(patientFhirId, allergyId),
+      deletePatientAllergy(normalizedId, allergyId),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: ["allergies", patientFhirId],
+        queryKey: ["allergies", normalizedId],
       });
     },
   });

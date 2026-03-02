@@ -112,6 +112,7 @@ export function PatientConditionsTab({
                 <TableHead>Status</TableHead>
                 <TableHead>Recorded</TableHead>
                 <TableHead>Recorder</TableHead>
+                <TableHead>Note</TableHead>
                 {canWriteConditions && <TableHead>Actions</TableHead>}
               </TableRow>
             </TableHeader>
@@ -129,6 +130,9 @@ export function PatientConditionsTab({
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-28" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-36" />
                   </TableCell>
                   {canWriteConditions && (
                     <TableCell>

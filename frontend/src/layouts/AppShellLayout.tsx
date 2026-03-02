@@ -86,7 +86,7 @@ function AppSidebar({
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink to={item.to}>
                       <item.icon />

@@ -85,7 +85,8 @@ function extractRecorder(reference?: FhirReference): string | null {
   if (display) return display;
   const ref = asStringOrNull(reference?.reference);
   if (!ref) return null;
-  return ref.split("/")[1] ?? ref;
+  const recorderId = ref.split("/")[1];
+  return recorderId ? recorderId : ref;
 }
 
 export function mapConditionResource(

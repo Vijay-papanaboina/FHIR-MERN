@@ -94,6 +94,10 @@ const buildConditionResource = (
   practitionerFhirId: string | undefined,
   input: CreateConditionInput,
 ): Record<string, unknown> => {
+  const patientId = patientFhirId.trim();
+  if (!patientId) {
+    throw new AppError("patientFhirId is required for Condition", 400);
+  }
   const diagnosis = input.diagnosis.trim();
   if (!diagnosis) {
     throw new AppError("diagnosis is required for Condition", 400);
@@ -116,7 +120,7 @@ const buildConditionResource = (
         : {}),
     },
     subject: {
-      reference: `Patient/${patientFhirId.trim()}`,
+      reference: `Patient/${patientId}`,
     },
     ...(practitionerFhirId?.trim()
       ? {
