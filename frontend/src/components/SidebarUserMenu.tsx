@@ -16,7 +16,15 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function SidebarUserMenu() {
+interface SidebarUserMenuProps {
+  settingsPath?: string;
+  showSettings?: boolean;
+}
+
+export function SidebarUserMenu({
+  settingsPath = "/dashboard/settings",
+  showSettings = true,
+}: SidebarUserMenuProps = {}) {
   const { data: session, isPending } = authClient.useSession();
   const navigate = useNavigate();
   const { signOut } = useSignOut();
@@ -58,11 +66,15 @@ export function SidebarUserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
-          <Settings className="mr-2 h-4 w-4" />
-          Settings
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        {showSettings && (
+          <>
+            <DropdownMenuItem onClick={() => navigate(settingsPath)}>
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" />
           Sign out

@@ -21,6 +21,8 @@ import { PortalVitalsPage } from "@/pages/PortalVitalsPage";
 import { PortalCareTeamPage } from "@/pages/PortalCareTeamPage";
 import { PortalMedicationsPage } from "@/pages/PortalMedicationsPage";
 import { PortalAppointmentsPage } from "@/pages/PortalAppointmentsPage";
+import { PortalConditionsPage } from "@/pages/PortalConditionsPage";
+import { PortalAllergiesPage } from "@/pages/PortalAllergiesPage";
 import { PendingRolePage } from "@/pages/PendingRolePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
@@ -107,6 +109,8 @@ export const router = createBrowserRouter([
       { path: "care-team", element: <PortalCareTeamPage /> },
       { path: "medications", element: <PortalMedicationsPage /> },
       { path: "appointments", element: <PortalAppointmentsPage /> },
+      { path: "conditions", element: <PortalConditionsPage /> },
+      { path: "allergies", element: <PortalAllergiesPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },
