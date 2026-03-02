@@ -96,7 +96,7 @@ const buildVerificationStatusConcept = (
 
 const buildAllergyResource = (
   patientFhirId: string,
-  practitionerFhirId: string,
+  practitionerFhirId: string | undefined,
   input: CreateAllergyIntoleranceInput,
 ): Record<string, unknown> => {
   const substance = input.substance.trim();
@@ -124,9 +124,13 @@ const buildAllergyResource = (
     patient: {
       reference: `Patient/${patientFhirId.trim()}`,
     },
-    recorder: {
-      reference: `Practitioner/${practitionerFhirId.trim()}`,
-    },
+    ...(practitionerFhirId?.trim()
+      ? {
+          recorder: {
+            reference: `Practitioner/${practitionerFhirId.trim()}`,
+          },
+        }
+      : {}),
     recordedDate,
     ...(input.criticality ? { criticality: input.criticality } : {}),
     ...(reactionText
@@ -177,7 +181,7 @@ export const getAllergyStatus = (
 
 export const createAllergyIntolerance = async (
   patientFhirId: string,
-  practitionerFhirId: string,
+  practitionerFhirId: string | undefined,
   data: CreateAllergyIntoleranceInput,
 ): Promise<Record<string, unknown>> => {
   const resource = buildAllergyResource(

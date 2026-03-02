@@ -91,7 +91,7 @@ const buildVerificationStatusConcept = (
 
 const buildConditionResource = (
   patientFhirId: string,
-  practitionerFhirId: string,
+  practitionerFhirId: string | undefined,
   input: CreateConditionInput,
 ): Record<string, unknown> => {
   const diagnosis = input.diagnosis.trim();
@@ -118,9 +118,13 @@ const buildConditionResource = (
     subject: {
       reference: `Patient/${patientFhirId.trim()}`,
     },
-    recorder: {
-      reference: `Practitioner/${practitionerFhirId.trim()}`,
-    },
+    ...(practitionerFhirId?.trim()
+      ? {
+          recorder: {
+            reference: `Practitioner/${practitionerFhirId.trim()}`,
+          },
+        }
+      : {}),
     recordedDate,
     ...(note ? { note: [{ text: note }] } : {}),
   };
@@ -161,7 +165,7 @@ export const getConditionStatus = (
 
 export const createCondition = async (
   patientFhirId: string,
-  practitionerFhirId: string,
+  practitionerFhirId: string | undefined,
   data: CreateConditionInput,
 ): Promise<Record<string, unknown>> => {
   const resource = buildConditionResource(
