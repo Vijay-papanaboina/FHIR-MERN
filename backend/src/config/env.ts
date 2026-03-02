@@ -27,6 +27,52 @@ const envSchema = z.object({
     .string()
     .min(32, "BETTER_AUTH_SECRET must be at least 32 characters long"),
   BETTER_AUTH_URL: z.url("BETTER_AUTH_URL must be a valid URL"),
+  BETTER_AUTH_RATE_LIMIT_ENABLED: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val == null ? undefined : val.toLowerCase() === "true",
+    ),
+  BETTER_AUTH_RATE_LIMIT_WINDOW: z
+    .string()
+    .optional()
+    .transform((val) => (val == null ? undefined : Number.parseInt(val, 10)))
+    .refine((val) => val == null || (Number.isInteger(val) && val > 0), {
+      message: "BETTER_AUTH_RATE_LIMIT_WINDOW must be a positive integer",
+    }),
+  BETTER_AUTH_RATE_LIMIT_MAX: z
+    .string()
+    .optional()
+    .transform((val) => (val == null ? undefined : Number.parseInt(val, 10)))
+    .refine((val) => val == null || (Number.isInteger(val) && val > 0), {
+      message: "BETTER_AUTH_RATE_LIMIT_MAX must be a positive integer",
+    }),
+  GLOBAL_RATE_LIMIT_ENABLED: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val == null ? undefined : val.toLowerCase() === "true",
+    ),
+  GLOBAL_RATE_LIMIT_WINDOW: z
+    .string()
+    .optional()
+    .transform((val) => (val == null ? undefined : Number.parseInt(val, 10)))
+    .refine((val) => val == null || (Number.isInteger(val) && val > 0), {
+      message: "GLOBAL_RATE_LIMIT_WINDOW must be a positive integer",
+    }),
+  GLOBAL_RATE_LIMIT_MAX: z
+    .string()
+    .optional()
+    .transform((val) => (val == null ? undefined : Number.parseInt(val, 10)))
+    .refine((val) => val == null || (Number.isInteger(val) && val > 0), {
+      message: "GLOBAL_RATE_LIMIT_MAX must be a positive integer",
+    }),
+  DISABLE_RATE_LIMIT: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val == null ? undefined : val.toLowerCase() === "true",
+    ),
 
   GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required"),
   GOOGLE_CLIENT_SECRET: z.string().min(1, "GOOGLE_CLIENT_SECRET is required"),

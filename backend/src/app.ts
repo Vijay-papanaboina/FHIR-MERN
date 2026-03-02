@@ -6,7 +6,7 @@ import { jsend } from "./utils/jsend.js";
 import { AppError } from "./utils/AppError.js";
 import { correlationId } from "./middleware/correlationId.js";
 import { requestLogger } from "./middleware/requestLogger.js";
-import { globalLimiter, authLimiter } from "./middleware/rateLimiter.js";
+import { globalLimiter } from "./middleware/rateLimiter.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import patientRoutes from "./routes/patient.routes.js";
 import vitalsRoutes from "./routes/vitals.routes.js";
@@ -37,7 +37,6 @@ export const createApp = () => {
   app.use(requestLogger);
 
   // ── Better-Auth Routes (before express.json — it parses its own body) ──
-  app.use("/api/auth", authLimiter);
   app.use("/api/auth", authRoutes);
 
   // ── Rate limiter & body parser ──────────────────────────────────

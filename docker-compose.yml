@@ -35,8 +35,7 @@ services:
       - hapi.fhir.tester.home.server_address=http://localhost:8080/fhir
       - hapi.fhir.tester.home.name=Local HAPI FHIR
       - hapi.fhir.subscription.resthook_enabled=true
-      - hapi.fhir.subscription.matching_strategy=DATABASE
-      - hapi.fhir.subscription.poll_interval=1000
+      - hapi.fhir.subscription.poll_for_changes_enabled=false
     depends_on:
       fhir-db:
         condition: service_healthy
