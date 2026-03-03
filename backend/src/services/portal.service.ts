@@ -9,6 +9,10 @@ import { getMedicationRequestsByPatient } from "../repositories/medication-reque
 import { getConditionsByPatient } from "../repositories/condition.repository.js";
 import { getAllergiesByPatient } from "../repositories/allergy-intolerance.repository.js";
 import { findPractitionersByIds } from "../repositories/user.repository.js";
+import {
+  listPortalDiagnosticResults,
+  listPortalDiagnostics,
+} from "./diagnostics.service.js";
 import { getPatient } from "./patient.service.js";
 import {
   createPatientReportedVital,
@@ -82,4 +86,17 @@ export const getPortalAllergies = (
   patientId: string,
 ): Promise<Record<string, unknown>> => {
   return getAllergiesByPatient(patientId);
+};
+
+export const getPortalDiagnostics = (
+  patientId: string,
+): Promise<Record<string, unknown>> => {
+  return listPortalDiagnostics(patientId);
+};
+
+export const getPortalDiagnosticResults = (
+  patientId: string,
+  diagnosticReportId: string,
+): Promise<Record<string, unknown>> => {
+  return listPortalDiagnosticResults(patientId, diagnosticReportId);
 };

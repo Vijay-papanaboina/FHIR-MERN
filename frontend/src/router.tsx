@@ -23,6 +23,7 @@ import { PortalMedicationsPage } from "@/pages/PortalMedicationsPage";
 import { PortalAppointmentsPage } from "@/pages/PortalAppointmentsPage";
 import { PortalConditionsPage } from "@/pages/PortalConditionsPage";
 import { PortalAllergiesPage } from "@/pages/PortalAllergiesPage";
+import { PortalDiagnosticsPage } from "@/pages/PortalDiagnosticsPage";
 import { PendingRolePage } from "@/pages/PendingRolePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
@@ -111,6 +112,7 @@ export const router = createBrowserRouter([
       { path: "appointments", element: <PortalAppointmentsPage /> },
       { path: "conditions", element: <PortalConditionsPage /> },
       { path: "allergies", element: <PortalAllergiesPage /> },
+      { path: "diagnostics", element: <PortalDiagnosticsPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

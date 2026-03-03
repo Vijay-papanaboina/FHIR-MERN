@@ -39,6 +39,26 @@ export const subjectPatientId = (subjectRef?: string): string | null => {
   return parts[parts.length - 1] ?? null;
 };
 
+export const referenceResourceId = (
+  reference: string | undefined,
+  expectedType?: string,
+): string | null => {
+  if (!reference) return null;
+  const normalized = reference.trim();
+  if (!normalized) return null;
+  if (normalized.startsWith("urn:uuid:")) {
+    const id = normalized.slice("urn:uuid:".length).trim();
+    return id || null;
+  }
+  const parts = normalized.split("/").filter(Boolean);
+  if (parts.length < 2) return null;
+  const type = parts[parts.length - 2];
+  const id = parts[parts.length - 1] ?? null;
+  if (!id) return null;
+  if (expectedType && type !== expectedType) return null;
+  return id;
+};
+
 export const pickName = (
   name?: Array<{ given?: string[]; family?: string }>,
   fallback = "Unknown",
@@ -68,6 +88,40 @@ export const sampleByPatient = <T extends { subject?: { reference?: string } }>(
 
   for (const item of records) {
     const patientId = subjectPatientId(item.subject?.reference);
+    if (!patientId || !patientIds.has(patientId)) continue;
+    const list = byPatient.get(patientId) ?? [];
+    list.push(item);
+    byPatient.set(patientId, list);
+  }
+
+  const selected: T[] = [];
+
+  for (const [patientId, list] of byPatient.entries()) {
+    const rng = createRng(`${seed}:${patientId}`);
+    const target = Math.min(list.length, perPatient(rng));
+
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = rng.int(0, i);
+      [list[i], list[j]] = [list[j] as T, list[i] as T];
+    }
+
+    selected.push(...list.slice(0, target));
+  }
+
+  return selected;
+};
+
+export const sampleByPatientId = <T>(
+  records: T[],
+  patientIds: Set<string>,
+  getPatientId: (record: T) => string | null,
+  perPatient: (rng: SeedRng) => number,
+  seed: string,
+): T[] => {
+  const byPatient = new Map<string, T[]>();
+
+  for (const item of records) {
+    const patientId = getPatientId(item);
     if (!patientId || !patientIds.has(patientId)) continue;
     const list = byPatient.get(patientId) ?? [];
     list.push(item);
