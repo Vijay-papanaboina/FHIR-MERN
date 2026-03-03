@@ -6,24 +6,14 @@ import {
   fhirPutWithHeaders,
 } from "./fhir.client.js";
 import { AppError } from "../utils/AppError.js";
+import type { ConditionStatus, CreateConditionInput } from "@fhir-mern/shared";
 
-export type ConditionStatus =
-  | "active"
-  | "inactive"
-  | "resolved"
-  | "entered-in-error"
-  | "unknown";
+export type { ConditionStatus, CreateConditionInput };
 
-export type ConditionClinicalStatus = "active" | "inactive" | "resolved";
+type ConditionClinicalStatus = NonNullable<
+  CreateConditionInput["clinicalStatus"]
+>;
 export type ConditionVerificationStatus = "confirmed" | "entered-in-error";
-
-export interface CreateConditionInput {
-  diagnosis: string;
-  snomedCode?: string;
-  recordedDate: string;
-  note?: string;
-  clinicalStatus?: ConditionClinicalStatus;
-}
 
 const CONDITION_CLINICAL_SYSTEM =
   "http://terminology.hl7.org/CodeSystem/condition-clinical";

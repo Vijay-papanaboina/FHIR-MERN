@@ -1,4 +1,10 @@
 import { z } from "zod";
+import type {
+  CreateAllergyInput,
+  CreateConditionInput,
+  UpdatableAllergyStatus,
+  UpdatableConditionStatus,
+} from "@fhir-mern/shared";
 
 const FHIR_ID_REGEX = /^[A-Za-z0-9\-.]{1,64}$/;
 
@@ -63,14 +69,16 @@ export const updateAllergyStatusSchema = z.object({
   }),
 });
 
-export type CreateConditionInput = z.infer<typeof createConditionSchema>;
 export type UpdateConditionStatusInput = z.infer<
   typeof updateConditionStatusSchema
 >;
-export type UpdatableConditionStatus = UpdateConditionStatusInput["status"];
 
-export type CreateAllergyInput = z.infer<typeof createAllergySchema>;
 export type UpdateAllergyStatusInput = z.infer<
   typeof updateAllergyStatusSchema
 >;
-export type UpdatableAllergyStatus = UpdateAllergyStatusInput["status"];
+export type {
+  CreateConditionInput,
+  UpdatableConditionStatus,
+  CreateAllergyInput,
+  UpdatableAllergyStatus,
+};

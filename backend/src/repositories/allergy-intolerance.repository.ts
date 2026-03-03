@@ -6,26 +6,14 @@ import {
   fhirPutWithHeaders,
 } from "./fhir.client.js";
 import { AppError } from "../utils/AppError.js";
+import type { AllergyStatus, CreateAllergyInput } from "@fhir-mern/shared";
 
-export type AllergyStatus =
-  | "active"
-  | "inactive"
-  | "resolved"
-  | "entered-in-error"
-  | "unknown";
+export type { AllergyStatus };
 
-export type AllergyClinicalStatus = "active" | "inactive" | "resolved";
+type AllergyClinicalStatus = NonNullable<CreateAllergyInput["clinicalStatus"]>;
 export type AllergyVerificationStatus = "confirmed" | "entered-in-error";
 
-export interface CreateAllergyIntoleranceInput {
-  substance: string;
-  snomedCode?: string;
-  recordedDate: string;
-  note?: string;
-  reaction?: string;
-  criticality?: "low" | "high" | "unable-to-assess";
-  clinicalStatus?: AllergyClinicalStatus;
-}
+export type CreateAllergyIntoleranceInput = CreateAllergyInput;
 
 const ALLERGY_CLINICAL_SYSTEM =
   "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical";

@@ -7,7 +7,6 @@ import {
   getConditionsByPatient,
   getConditionStatus,
   updateConditionStatus,
-  type ConditionStatus,
 } from "../repositories/condition.repository.js";
 import {
   createAllergyIntolerance,
@@ -16,19 +15,22 @@ import {
   getAllergyIntoleranceById,
   getAllergyStatus,
   updateAllergyStatus,
-  type AllergyStatus,
 } from "../repositories/allergy-intolerance.repository.js";
 import { findUserById } from "../repositories/user.repository.js";
+import type {
+  AllergyStatus,
+  ConditionStatus,
+  CreateAllergyInput,
+  CreateConditionInput,
+  UpdatableAllergyStatus,
+  UpdatableConditionStatus,
+} from "@fhir-mern/shared";
 import {
   createAllergySchema,
   createConditionSchema,
   fhirIdSchema,
   updateAllergyStatusSchema,
   updateConditionStatusSchema,
-  type CreateAllergyInput,
-  type CreateConditionInput,
-  type UpdatableAllergyStatus,
-  type UpdatableConditionStatus,
 } from "../validators/conditions-allergies.validator.js";
 import { AppError } from "../utils/AppError.js";
 

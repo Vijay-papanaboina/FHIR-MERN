@@ -13,7 +13,7 @@ import type { MedicationRequestStatus } from "../repositories/medication-request
 import type {
   CreateMedicationInput,
   UpdatableMedicationStatus,
-} from "../validators/medication.validator.js";
+} from "@fhir-mern/shared";
 import {
   createMedicationSchema,
   fhirIdSchema,

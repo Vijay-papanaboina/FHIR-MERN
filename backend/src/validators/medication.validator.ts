@@ -1,7 +1,8 @@
 import { z } from "zod";
 import type {
+  CreateMedicationInput as SharedCreateMedicationInput,
   MedicationStatus,
-  UpdatableMedicationStatus as SharedUpdatableMedicationStatus,
+  UpdatableMedicationStatus,
 } from "@fhir-mern/shared";
 
 const FHIR_ID_REGEX = /^[A-Za-z0-9\-.]{1,64}$/;
@@ -47,10 +48,9 @@ export const updateMedicationStatusSchema = z.object({
   }),
 });
 
-export type CreateMedicationInput = z.infer<typeof createMedicationSchema>;
+export type CreateMedicationInput = SharedCreateMedicationInput;
 export type UpdateMedicationStatusInput = z.infer<
   typeof updateMedicationStatusSchema
 >;
-export type UpdatableMedicationStatus = UpdateMedicationStatusInput["status"] &
-  SharedUpdatableMedicationStatus;
+export type { UpdatableMedicationStatus };
 export type AnyMedicationStatus = MedicationStatus;
