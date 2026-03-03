@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "1.3.0",
+  "version": "1.4.0",
   "type": "module",
   "scripts": {
     "predev": "npm run -w @fhir-mern/shared build",
@@ -15,7 +15,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fhir-mern/shared": "1.3.0",
+    "@fhir-mern/shared": "1.4.0",
     "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-query": "^5.90.21",
