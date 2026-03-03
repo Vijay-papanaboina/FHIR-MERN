@@ -35,6 +35,25 @@ export interface FhirMedicationRequest {
   subject?: { reference?: string };
 }
 
+export interface FhirCondition {
+  resourceType: "Condition";
+  id: string;
+  subject?: { reference?: string };
+}
+
+export interface FhirAllergyIntolerance {
+  resourceType: "AllergyIntolerance";
+  id: string;
+  patient?: { reference?: string };
+}
+
+export interface FhirDiagnosticReport {
+  resourceType: "DiagnosticReport";
+  id: string;
+  subject?: { reference?: string };
+  result?: Array<{ reference?: string }>;
+}
+
 interface FhirBundleLike {
   resourceType?: string;
   entry?: Array<{ resource?: Record<string, unknown> }>;
@@ -114,7 +133,11 @@ export const loadSyntheaDataFromZip = async (
   patients: FhirPatient[];
   practitioners: FhirPractitioner[];
   observations: FhirObservation[];
+  observationIndex: Record<string, FhirObservation>;
   medications: FhirMedicationRequest[];
+  conditions: FhirCondition[];
+  allergies: FhirAllergyIntolerance[];
+  diagnosticReports: FhirDiagnosticReport[];
 }> => {
   await downloadZip(zipUrl, zipPath);
   await extractZip(zipPath, extractDir);
@@ -124,7 +147,11 @@ export const loadSyntheaDataFromZip = async (
   const patientMap = new Map<string, FhirPatient>();
   const practitionerMap = new Map<string, FhirPractitioner>();
   const observations: FhirObservation[] = [];
+  const observationIndex: Record<string, FhirObservation> = {};
   const medications: FhirMedicationRequest[] = [];
+  const conditions: FhirCondition[] = [];
+  const allergies: FhirAllergyIntolerance[] = [];
+  const diagnosticReports: FhirDiagnosticReport[] = [];
 
   // Pass 1: pick target patients and collect practitioners opportunistically.
   for (const file of files) {
@@ -180,6 +207,7 @@ export const loadSyntheaDataFromZip = async (
         resource.resourceType === "Observation" &&
         typeof resource.id === "string"
       ) {
+        observationIndex[resource.id] = resource as FhirObservation;
         const patientId = subjectPatientId(
           (resource.subject as { reference?: string } | undefined)?.reference,
         );
@@ -199,6 +227,42 @@ export const loadSyntheaDataFromZip = async (
           medications.push(resource as FhirMedicationRequest);
         }
       }
+
+      if (
+        resource.resourceType === "Condition" &&
+        typeof resource.id === "string"
+      ) {
+        const patientId = subjectPatientId(
+          (resource.subject as { reference?: string } | undefined)?.reference,
+        );
+        if (patientId && selectedPatientIds.has(patientId)) {
+          conditions.push(resource as FhirCondition);
+        }
+      }
+
+      if (
+        resource.resourceType === "AllergyIntolerance" &&
+        typeof resource.id === "string"
+      ) {
+        const patientId = subjectPatientId(
+          (resource.patient as { reference?: string } | undefined)?.reference,
+        );
+        if (patientId && selectedPatientIds.has(patientId)) {
+          allergies.push(resource as FhirAllergyIntolerance);
+        }
+      }
+
+      if (
+        resource.resourceType === "DiagnosticReport" &&
+        typeof resource.id === "string"
+      ) {
+        const patientId = subjectPatientId(
+          (resource.subject as { reference?: string } | undefined)?.reference,
+        );
+        if (patientId && selectedPatientIds.has(patientId)) {
+          diagnosticReports.push(resource as FhirDiagnosticReport);
+        }
+      }
     }
   }
 
@@ -216,6 +280,10 @@ export const loadSyntheaDataFromZip = async (
     patients: Array.from(patientMap.values()),
     practitioners: practitioners.slice(0, maxPractitioners),
     observations,
+    observationIndex,
     medications,
+    conditions,
+    allergies,
+    diagnosticReports,
   };
 };
