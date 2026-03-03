@@ -2,7 +2,9 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import {
   getPortalCareTeam,
+  getPortalConditions,
   getPortalDemographics,
+  getPortalAllergies,
   getPortalMedications,
   getPortalVitals,
   submitPortalVital,
@@ -81,6 +83,34 @@ export const getMyMedications = async (req: Request, res: Response) => {
 
   const medications = await getPortalMedications(patientId);
   res.json(jsend.success(medications));
+};
+
+/**
+ * GET /api/portal/conditions
+ * Returns conditions for the linked patient account.
+ */
+export const getMyConditions = async (req: Request, res: Response) => {
+  const patientId = req.fhirPatientId;
+  if (!patientId) {
+    throw new AppError("Account not yet linked to a patient record", 403);
+  }
+
+  const conditions = await getPortalConditions(patientId);
+  res.json(jsend.success(conditions));
+};
+
+/**
+ * GET /api/portal/allergies
+ * Returns allergies for the linked patient account.
+ */
+export const getMyAllergies = async (req: Request, res: Response) => {
+  const patientId = req.fhirPatientId;
+  if (!patientId) {
+    throw new AppError("Account not yet linked to a patient record", 403);
+  }
+
+  const allergies = await getPortalAllergies(patientId);
+  res.json(jsend.success(allergies));
 };
 
 /**

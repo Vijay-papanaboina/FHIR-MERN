@@ -1,7 +1,9 @@
 import { Router } from "express";
 import {
   getMyCareTeam,
+  getMyConditions,
   getMyDemographics,
+  getMyAllergies,
   getMyMedications,
   getMyVitals,
   submitMyVital,
@@ -23,6 +25,8 @@ router.get("/me", getMyDemographics);
 router.get("/care-team", getMyCareTeam);
 router.get("/vitals", getMyVitals);
 router.get("/medications", getMyMedications);
+router.get("/conditions", getMyConditions);
+router.get("/allergies", getMyAllergies);
 router.get("/appointments", listPortalAppointmentsHandler);
 router.post("/vitals", submitMyVital);
 router.post("/appointments", createPortalAppointmentHandler);

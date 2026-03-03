@@ -1,4 +1,6 @@
-export type AppRole = "admin" | "practitioner" | "patient";
+import type { UserRole } from "@fhir-mern/shared";
+
+export type AppRole = UserRole;
 
 const ROLE_SET = new Set<AppRole>(["admin", "practitioner", "patient"]);
 

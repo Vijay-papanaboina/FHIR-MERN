@@ -6,6 +6,8 @@ import type {
 } from "@fhir-mern/shared";
 import { getAssignmentsByPatient } from "../repositories/assignment.repository.js";
 import { getMedicationRequestsByPatient } from "../repositories/medication-request.repository.js";
+import { getConditionsByPatient } from "../repositories/condition.repository.js";
+import { getAllergiesByPatient } from "../repositories/allergy-intolerance.repository.js";
 import { findPractitionersByIds } from "../repositories/user.repository.js";
 import { getPatient } from "./patient.service.js";
 import {
@@ -68,4 +70,16 @@ export const getPortalMedications = (
   patientId: string,
 ): Promise<Record<string, unknown>> => {
   return getMedicationRequestsByPatient(patientId);
+};
+
+export const getPortalConditions = (
+  patientId: string,
+): Promise<Record<string, unknown>> => {
+  return getConditionsByPatient(patientId);
+};
+
+export const getPortalAllergies = (
+  patientId: string,
+): Promise<Record<string, unknown>> => {
+  return getAllergiesByPatient(patientId);
 };
